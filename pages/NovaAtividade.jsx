@@ -196,15 +196,17 @@ const NovaAtividade = () => {
 
           <div className="campo">
             <label htmlFor="data_inicio">
-              Data de Início <span className="obrigatorio">*</span>
+              Tempo Total <span className="obrigatorio">*</span>
             </label>
             <input
-              type="date"
+              type="text"
               id="data_inicio"
               name="data_inicio"
               value={formData.data_inicio}
               onChange={handleChange}
+              placeholder="Ex: 2:30 (H:M)"
               disabled={isLoading}
+              pattern="[0-9]+:[0-5][0-9]"
             />
           </div>
 

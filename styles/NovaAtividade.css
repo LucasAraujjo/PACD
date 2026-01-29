@@ -213,16 +213,178 @@ body {
 }
 
 /* Responsividade */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem 0.5rem;
+  }
+
+  .menu-button {
+    top: 1rem;
+    left: 1rem;
+    width: 44px;
+    height: 44px;
+    font-size: 1.35rem;
+  }
+
   .card {
-    padding: 1.5rem;
+    padding: 2rem 1.5rem;
+    margin-top: 3.5rem; /* Espaço para o botão do menu */
   }
 
   .titulo {
-    font-size: 1.5rem;
+    font-size: 1.625rem;
   }
 
   .subtitulo {
+    font-size: 0.9rem;
+  }
+
+  .campo input,
+  .campo select,
+  .campo textarea {
+    font-size: 16px; /* Evita zoom no iOS */
+    padding: 0.675rem;
+  }
+
+  .campo textarea {
+    min-height: 90px;
+  }
+
+  .botao-submit {
+    padding: 0.8rem 1.25rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.5rem 0.25rem;
+    align-items: flex-start;
+  }
+
+  .menu-button {
+    top: 0.75rem;
+    left: 0.75rem;
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .card {
+    padding: 1.5rem 1rem;
+    margin-top: 3.5rem;
+    border-radius: 8px;
+  }
+
+  .titulo {
+    font-size: 1.4rem;
+  }
+
+  .subtitulo {
+    font-size: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .mensagem {
+    padding: 0.875rem;
+    font-size: 0.8rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .formulario {
+    gap: 1.25rem;
+  }
+
+  .campo {
+    gap: 0.4rem;
+  }
+
+  .campo label {
+    font-size: 0.8rem;
+  }
+
+  .campo input,
+  .campo select,
+  .campo textarea {
+    padding: 0.625rem 0.75rem;
+    font-size: 16px; /* Evita zoom automático no iOS */
+  }
+
+  .campo textarea {
+    min-height: 80px;
+    rows: 3;
+  }
+
+  .botao-submit {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .container {
+    padding: 0.25rem;
+  }
+
+  .menu-button {
+    top: 0.5rem;
+    left: 0.5rem;
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+
+  .card {
+    padding: 1.25rem 0.875rem;
+    margin-top: 3rem;
+  }
+
+  .titulo {
+    font-size: 1.25rem;
+  }
+
+  .subtitulo {
+    font-size: 0.75rem;
+  }
+
+  .campo input,
+  .campo select,
+  .campo textarea {
+    padding: 0.5rem 0.625rem;
+  }
+
+  .botao-submit {
+    padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
+  }
+}
+
+/* Ajustes para orientação landscape em smartphones */
+@media (max-height: 600px) and (orientation: landscape) {
+  .container {
+    padding: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .card {
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .titulo {
+    font-size: 1.25rem;
+  }
+
+  .subtitulo {
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .formulario {
+    gap: 1rem;
+  }
+
+  .campo textarea {
+    min-height: 60px;
   }
 }
