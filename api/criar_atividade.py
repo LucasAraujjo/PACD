@@ -4,6 +4,7 @@ Endpoint: POST /api/criar-atividade
 """
 import os
 import json
+import random
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler
 
@@ -40,15 +41,111 @@ def get_google_credentials():
 
 def gerar_id_atividade():
     """Gera ID único baseado em timestamp"""
-    return datetime.now().strftime("%Y%m%d%H%M%S")
+    base = datetime.now().strftime("%H%M")
+    rand = random.randint(0, 3)
+
+    id_atividade = f"{base}{rand}"
+
+    return id_atividade
+
+
+def gerar_id_simulado():
+    """Gera ID único para simulado"""
+    base = datetime.now().strftime("%H%M%S")
+    rand = random.randint(0, 9)
+    return f"SIM{base}{rand}"
+
+
+def gerar_id_questao():
+    """Gera ID único para questão"""
+    base = datetime.now().strftime("%H%M%S")
+    rand = random.randint(0, 9)
+    return f"QST{base}{rand}"
+
+
+def inserir_simulado(planilha, id_atividade, dados):
+    """
+    Insere um registro de simulado na aba 'simulados'
+
+    Args:
+        planilha: Objeto da planilha Google Sheets
+        id_atividade: ID da atividade relacionada
+        dados: Dicionário com os dados do simulado
+
+    Returns:
+        str: ID do simulado criado
+    """
+    print("📊 Função inserir_simulado iniciada")
+
+    aba_simulados = planilha.worksheet("simulados")
+    id_simulado = gerar_id_simulado()
+    data_execucao = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+
+    # Campos: id_simulado, id_atividade, data_execucao, area, questoes, acertos, tempo, comentarios
+    linha_simulado = [
+        id_simulado,
+        id_atividade,
+        data_execucao,
+        dados.get('area', ''),
+        dados.get('questoes', ''),
+        dados.get('acertos', ''),
+        dados.get('tempo_total', ''),
+        dados.get('comentarios', '')
+    ]
+
+    print(f"📝 Inserindo simulado: {linha_simulado}")
+    aba_simulados.append_row(linha_simulado)
+    print(f"✅ Simulado {id_simulado} inserido com sucesso!")
+
+    return id_simulado
+
+
+def inserir_questoes(planilha, id_atividade, dados):
+    """
+    Insere um registro de questão na aba 'questoes'
+
+    Args:
+        planilha: Objeto da planilha Google Sheets
+        id_atividade: ID da atividade relacionada
+        dados: Dicionário com os dados da questão
+
+    Returns:
+        str: ID da questão criada
+    """
+    print("📊 Função inserir_questoes iniciada")
+
+    aba_questoes = planilha.worksheet("questoes")
+    id_questao = gerar_id_questao()
+    data_execucao = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+
+    # Campos: id_questao, id_atividade, data_execucao, area, materia, assunto, questoes, acertos, tempo, comentarios
+    linha_questao = [
+        id_questao,
+        id_atividade,
+        data_execucao,
+        dados.get('area', ''),
+        dados.get('materia', ''),
+        dados.get('assunto', ''),
+        dados.get('questoes', ''),
+        dados.get('acertos', ''),
+        dados.get('tempo_total', ''),
+        dados.get('comentarios', '')
+    ]
+
+    print(f"📝 Inserindo questão: {linha_questao}")
+    aba_questoes.append_row(linha_questao)
+    print(f"✅ Questão {id_questao} inserida com sucesso!")
+
+    return id_questao
 
 
 def inserir_atividade(dados):
     """
     Insere uma nova atividade na planilha Google Sheets
+    E também insere na tabela específica (simulados ou questoes)
 
     Args:
-        dados (dict): Dicionário com titulo, tipo, data_inicio, comentarios
+        dados (dict): Dicionário com titulo, tipo, tempo_total, area, materia, assunto, questoes, acertos, comentarios
 
     Returns:
         dict: Resposta com id_atividade gerado
@@ -80,26 +177,37 @@ def inserir_atividade(dados):
         print(f"🆔 ID gerado: {id_atividade}")
         print(f"📅 Data de inclusão: {data_inclusao}")
 
-        # Preparar linha conforme especificação
-        # Campos: id_atividade, titulo, tipo, data_inicio, comentarios, data_inclusao
+        # Preparar linha para tabela 'atividades' (apenas dados estruturais)
+        # Campos: id_atividade, titulo, tipo, tempo_total, data_inclusao
         linha = [
             id_atividade,
             dados.get('titulo', ''),
             dados.get('tipo', ''),
-            dados.get('data_inicio', ''),
-            dados.get('comentarios', ''),
+            dados.get('tempo_total', ''),
             data_inclusao
         ]
-        print(f"📝 Linha a ser inserida: {linha}")
+        print(f"📝 Linha a ser inserida em 'atividades': {linha}")
 
-        # Inserir na planilha
-        print("💾 Inserindo linha na planilha...")
+        # Inserir na planilha 'atividades'
+        print("💾 Inserindo linha na planilha 'atividades'...")
         aba.append_row(linha)
-        print("✅ Linha inserida com sucesso!")
+        print("✅ Linha inserida em 'atividades' com sucesso!")
+
+        # Inserir na tabela específica baseado no tipo
+        tipo = dados.get('tipo', '')
+        id_secundario = None
+
+        if tipo == 'Simulado':
+            print("🎯 Tipo é Simulado, inserindo na tabela 'simulados'...")
+            id_secundario = inserir_simulado(planilha, id_atividade, dados)
+        elif tipo == 'Questões':
+            print("📋 Tipo é Questões, inserindo na tabela 'questoes'...")
+            id_secundario = inserir_questoes(planilha, id_atividade, dados)
 
         resultado = {
             "success": True,
             "id_atividade": id_atividade,
+            "id_secundario": id_secundario,
             "message": "Atividade criada com sucesso"
         }
         print(f"✅ Retornando resultado: {resultado}")
@@ -134,7 +242,7 @@ class handler(BaseHTTPRequestHandler):
 
             # Validar dados obrigatórios
             print("🔍 Validando campos obrigatórios...")
-            campos_obrigatorios = ['titulo', 'tipo', 'data_inicio']
+            campos_obrigatorios = ['titulo', 'tipo', 'tempo_total']
             for campo in campos_obrigatorios:
                 valor = dados.get(campo)
                 print(f"  - {campo}: {valor} {'✅' if valor else '❌'}")
