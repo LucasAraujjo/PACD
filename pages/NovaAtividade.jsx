@@ -6,7 +6,7 @@ const NovaAtividade = () => {
   const [formData, setFormData] = useState({
     titulo: '',
     tipo: '',
-    data_inicio: '',
+    tempo_total: '',
     comentarios: ''
   });
 
@@ -46,9 +46,9 @@ const NovaAtividade = () => {
       setMensagem({ tipo: 'erro', texto: 'Selecione o tipo da atividade' });
       return false;
     }
-    if (!formData.data_inicio) {
-      console.error('❌ Validação falhou: data não preenchida');
-      setMensagem({ tipo: 'erro', texto: 'A data de início é obrigatória' });
+    if (!formData.tempo_total) {
+      console.error('❌ Validação falhou: tempo total não preenchido');
+      setMensagem({ tipo: 'erro', texto: 'O tempo total é obrigatório' });
       return false;
     }
 
@@ -111,7 +111,7 @@ const NovaAtividade = () => {
         setFormData({
           titulo: '',
           tipo: '',
-          data_inicio: '',
+          tempo_total: '',
           comentarios: ''
         });
       } else {
@@ -195,14 +195,14 @@ const NovaAtividade = () => {
           </div>
 
           <div className="campo">
-            <label htmlFor="data_inicio">
+            <label htmlFor="tempo_total">
               Tempo Total <span className="obrigatorio">*</span>
             </label>
             <input
               type="text"
-              id="data_inicio"
-              name="data_inicio"
-              value={formData.data_inicio}
+              id="tempo_total"
+              name="tempo_total"
+              value={formData.tempo_total}
               onChange={handleChange}
               placeholder="Ex: 2:30 (H:M)"
               disabled={isLoading}
