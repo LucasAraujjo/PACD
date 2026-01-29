@@ -6,8 +6,13 @@ const NovaAtividade = () => {
   const [formData, setFormData] = useState({
     titulo: '',
     tipo: '',
-    data_inicio: '',
-    comentarios: ''
+    tempo_total: '',
+    comentarios: '',
+    area: '',
+    materia: '',
+    assunto: '',
+    questoes: '',
+    acertos: ''
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -16,12 +21,16 @@ const NovaAtividade = () => {
 
   // Tipos de atividade disponíveis
   const tiposAtividade = [
-    'SIMULADO',
-    'LISTA',
-    'REVISAO',
-    'EXERCICIOS',
-    'LEITURA',
-    'VIDEO_AULA'
+    'Simulado',
+    'Questões',
+  ];
+
+  // Áreas do conhecimento para simulados
+  const areasConhecimento = [
+    'Humanas',
+    'Natureza',
+    'Matemática',
+    'Linguagens'
   ];
 
   const handleChange = (e) => {
@@ -46,10 +55,68 @@ const NovaAtividade = () => {
       setMensagem({ tipo: 'erro', texto: 'Selecione o tipo da atividade' });
       return false;
     }
-    if (!formData.data_inicio) {
-      console.error('❌ Validação falhou: data não preenchida');
-      setMensagem({ tipo: 'erro', texto: 'A data de início é obrigatória' });
+    if (!formData.tempo_total) {
+      console.error('❌ Validação falhou: tempo total não preenchido');
+      setMensagem({ tipo: 'erro', texto: 'O tempo total é obrigatório' });
       return false;
+    }
+
+    // Validações específicas para Simulado
+    if (formData.tipo === 'Simulado') {
+      if (!formData.area) {
+        console.error('❌ Validação falhou: área não selecionada');
+        setMensagem({ tipo: 'erro', texto: 'Selecione a área do simulado' });
+        return false;
+      }
+      if (!formData.questoes || formData.questoes <= 0) {
+        console.error('❌ Validação falhou: questões inválidas');
+        setMensagem({ tipo: 'erro', texto: 'Informe o número de questões' });
+        return false;
+      }
+      if (formData.acertos === '' || formData.acertos < 0) {
+        console.error('❌ Validação falhou: acertos inválidos');
+        setMensagem({ tipo: 'erro', texto: 'Informe o número de acertos' });
+        return false;
+      }
+      if (parseInt(formData.acertos) > parseInt(formData.questoes)) {
+        console.error('❌ Validação falhou: acertos maior que questões');
+        setMensagem({ tipo: 'erro', texto: 'Acertos não pode ser maior que o total de questões' });
+        return false;
+      }
+    }
+
+    // Validações específicas para Questões
+    if (formData.tipo === 'Questões') {
+      if (!formData.area) {
+        console.error('❌ Validação falhou: área não selecionada');
+        setMensagem({ tipo: 'erro', texto: 'Selecione a área das questões' });
+        return false;
+      }
+      if (!formData.materia || !formData.materia.trim()) {
+        console.error('❌ Validação falhou: matéria não preenchida');
+        setMensagem({ tipo: 'erro', texto: 'Informe a matéria' });
+        return false;
+      }
+      if (!formData.assunto || !formData.assunto.trim()) {
+        console.error('❌ Validação falhou: assunto não preenchido');
+        setMensagem({ tipo: 'erro', texto: 'Informe o assunto' });
+        return false;
+      }
+      if (!formData.questoes || formData.questoes <= 0) {
+        console.error('❌ Validação falhou: questões inválidas');
+        setMensagem({ tipo: 'erro', texto: 'Informe o número de questões' });
+        return false;
+      }
+      if (formData.acertos === '' || formData.acertos < 0) {
+        console.error('❌ Validação falhou: acertos inválidos');
+        setMensagem({ tipo: 'erro', texto: 'Informe o número de acertos' });
+        return false;
+      }
+      if (parseInt(formData.acertos) > parseInt(formData.questoes)) {
+        console.error('❌ Validação falhou: acertos maior que questões');
+        setMensagem({ tipo: 'erro', texto: 'Acertos não pode ser maior que o total de questões' });
+        return false;
+      }
     }
 
     console.log('✅ Validação passou!');
@@ -72,7 +139,7 @@ const NovaAtividade = () => {
     console.log('⏳ Enviando requisição para API...');
 
     try {
-      const url = '/api/criar-atividade';
+      const url = '/api/criar_atividade';
       console.log('🌐 URL:', url);
       console.log('📤 Payload:', JSON.stringify(formData, null, 2));
 
@@ -86,15 +153,18 @@ const NovaAtividade = () => {
 
       console.log('📥 Status da resposta:', response.status, response.statusText);
 
+      // Primeiro pegar o texto da resposta
+      const responseText = await response.text();
+      console.log('📄 Resposta como texto:', responseText);
+
       let data;
       try {
-        data = await response.json();
+        data = JSON.parse(responseText);
         console.log('📊 Dados da resposta:', data);
       } catch (parseError) {
         console.error('❌ Erro ao fazer parse do JSON:', parseError);
-        const text = await response.text();
-        console.error('📄 Resposta como texto:', text);
-        throw new Error('Resposta inválida do servidor');
+        console.error('📄 Texto recebido:', responseText);
+        throw new Error(`Resposta inválida do servidor: ${responseText.substring(0, 100)}`);
       }
 
       if (response.ok && data.success) {
@@ -108,8 +178,13 @@ const NovaAtividade = () => {
         setFormData({
           titulo: '',
           tipo: '',
-          data_inicio: '',
-          comentarios: ''
+          tempo_total: '',
+          comentarios: '',
+          area: '',
+          materia: '',
+          assunto: '',
+          questoes: '',
+          acertos: ''
         });
       } else {
         console.error('❌ Erro na resposta:', data);
@@ -192,18 +267,166 @@ const NovaAtividade = () => {
           </div>
 
           <div className="campo">
-            <label htmlFor="data_inicio">
-              Data de Início <span className="obrigatorio">*</span>
+            <label htmlFor="tempo_total">
+              Tempo Total <span className="obrigatorio">*</span>
             </label>
             <input
-              type="date"
-              id="data_inicio"
-              name="data_inicio"
-              value={formData.data_inicio}
+              type="text"
+              id="tempo_total"
+              name="tempo_total"
+              value={formData.tempo_total}
               onChange={handleChange}
+              placeholder="Ex: 2:30 (H:M)"
               disabled={isLoading}
+              pattern="[0-9]+:[0-5][0-9]"
             />
           </div>
+
+          {/* Campos específicos para Simulado */}
+          {formData.tipo === 'Simulado' && (
+            <>
+              <div className="campo">
+                <label htmlFor="area">
+                  Área <span className="obrigatorio">*</span>
+                </label>
+                <select
+                  id="area"
+                  name="area"
+                  value={formData.area}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                >
+                  <option value="">Selecione a área</option>
+                  {areasConhecimento.map(area => (
+                    <option key={area} value={area}>
+                      {area}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="campo">
+                <label htmlFor="questoes">
+                  Questões <span className="obrigatorio">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="questoes"
+                  name="questoes"
+                  value={formData.questoes}
+                  onChange={handleChange}
+                  placeholder="Total de questões"
+                  disabled={isLoading}
+                  min="1"
+                />
+              </div>
+
+              <div className="campo">
+                <label htmlFor="acertos">
+                  Acertos <span className="obrigatorio">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="acertos"
+                  name="acertos"
+                  value={formData.acertos}
+                  onChange={handleChange}
+                  placeholder="Questões acertadas"
+                  disabled={isLoading}
+                  min="0"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Campos específicos para Questões */}
+          {formData.tipo === 'Questões' && (
+            <>
+              <div className="campo">
+                <label htmlFor="area">
+                  Área <span className="obrigatorio">*</span>
+                </label>
+                <select
+                  id="area"
+                  name="area"
+                  value={formData.area}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                >
+                  <option value="">Selecione a área</option>
+                  {areasConhecimento.map(area => (
+                    <option key={area} value={area}>
+                      {area}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="campo">
+                <label htmlFor="materia">
+                  Matéria <span className="obrigatorio">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="materia"
+                  name="materia"
+                  value={formData.materia}
+                  onChange={handleChange}
+                  placeholder="Ex: Física, Química, História..."
+                  disabled={isLoading}
+                  maxLength={100}
+                />
+              </div>
+
+              <div className="campo">
+                <label htmlFor="assunto">
+                  Assunto <span className="obrigatorio">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="assunto"
+                  name="assunto"
+                  value={formData.assunto}
+                  onChange={handleChange}
+                  placeholder="Ex: Cinemática, Termologia, Brasil Colônia..."
+                  disabled={isLoading}
+                  maxLength={150}
+                />
+              </div>
+
+              <div className="campo">
+                <label htmlFor="questoes">
+                  Questões <span className="obrigatorio">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="questoes"
+                  name="questoes"
+                  value={formData.questoes}
+                  onChange={handleChange}
+                  placeholder="Total de questões"
+                  disabled={isLoading}
+                  min="1"
+                />
+              </div>
+
+              <div className="campo">
+                <label htmlFor="acertos">
+                  Acertos <span className="obrigatorio">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="acertos"
+                  name="acertos"
+                  value={formData.acertos}
+                  onChange={handleChange}
+                  placeholder="Questões acertadas"
+                  disabled={isLoading}
+                  min="0"
+                />
+              </div>
+            </>
+          )}
 
           <div className="campo">
             <label htmlFor="comentarios">
