@@ -142,20 +142,30 @@ def listar_atividades():
             var_intIdAtividade = atividade['ID_ATIVIDADE']
             var_strTipo = atividade['TIPO']
 
+
             item = {
                 'ID_ATIVIDADE': var_intIdAtividade,
                 'TITULO': atividade['TITULO'],
                 'TIPO': var_strTipo,
+                'QUESTOES': 0,
+                'ACERTOS': 0,
                 'DT_ATUALIZACAO': atividade['DT_ATUALIZACAO'],
                 'INFO': []
             }
 
             if var_strTipo == 'Simulado':
+                #Procura pelo var_intIdAtividade na lista de simulados e puxa a lsita inteira do valor
                 item['INFO'] = var_listSimuladosPorAtividade.get(var_intIdAtividade, [])
 
             elif var_strTipo == 'Questões':
                 item['INFO'] = var_listQuestoesPorAtividade.get(var_intIdAtividade, [])
 
+            for registro in item['INFO']:
+                item['QUESTOES'] += registro['QUESTOES']
+                item['ACERTOS']  += registro['ACERTOS']
+
+            print(item)
+            
             var_jsonFinal.append(item)
 
         print(f"✅ {len(var_jsonFinal)} atividades completas montadas")
