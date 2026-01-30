@@ -483,7 +483,7 @@ const MinhasAtividades = () => {
                     <th onClick={() => alternarOrdenacao('DT_INICIO')}>
                       Data de Início {getIconeOrdenacao('DT_INICIO')}
                     </th>
-                    <th>Ações</th>
+                    {filtroCategoria === 'Exercícios' && <th>Ações</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -528,14 +528,16 @@ const MinhasAtividades = () => {
                         )}
 
                         <td className="celula-data">{atividade.DT_INICIO}</td>
-                        <td>
-                          <button
-                            className="botao-detalhes"
-                            onClick={() => abrirDetalhes(atividade)}
-                          >
-                            Ver Detalhes
-                          </button>
-                        </td>
+                        {filtroCategoria === 'Exercícios' && (
+                          <td>
+                            <button
+                              className="botao-detalhes"
+                              onClick={() => abrirDetalhes(atividade)}
+                            >
+                              Ver Detalhes
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
