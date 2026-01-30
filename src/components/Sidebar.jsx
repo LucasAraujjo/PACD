@@ -1,15 +1,25 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     if (window.confirm('Deseja realmente sair?')) {
       logout();
     }
   };
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    onClose();
+  };
+
+  const isActive = (path) => location.pathname === path;
 
   return (
     <>
@@ -36,26 +46,28 @@ const Sidebar = ({ isOpen, onClose }) => {
         </div>
 
         <nav className="sidebar-nav">
-          <a href="#" className="sidebar-nav-item active">
-            <span className="sidebar-nav-icon">📝</span>
-            <span>Nova Atividade</span>
-          </a>
-          <a href="#" className="sidebar-nav-item disabled">
-            <span className="sidebar-nav-icon">📊</span>
-            <span>Dashboard</span>
-          </a>
-          <a href="#" className="sidebar-nav-item disabled">
+          <button
+            onClick={() => handleNavigate('/minhas-atividades')}
+            className={`sidebar-nav-item ${isActive('/minhas-atividades') ? 'active' : ''}`}
+          >
             <span className="sidebar-nav-icon">📋</span>
             <span>Minhas Atividades</span>
-          </a>
-          <a href="#" className="sidebar-nav-item disabled">
-            <span className="sidebar-nav-icon">🎯</span>
-            <span>Simulados</span>
-          </a>
-          <a href="#" className="sidebar-nav-item disabled">
+          </button>
+          <button
+            onClick={() => handleNavigate('/nova-atividade')}
+            className={`sidebar-nav-item ${isActive('/nova-atividade') ? 'active' : ''}`}
+          >
+            <span className="sidebar-nav-icon">📝</span>
+            <span>Nova Atividade</span>
+          </button>
+          <button className="sidebar-nav-item disabled" disabled>
+            <span className="sidebar-nav-icon">📊</span>
+            <span>Dashboard</span>
+          </button>
+          <button className="sidebar-nav-item disabled" disabled>
             <span className="sidebar-nav-icon">📈</span>
             <span>Relatórios</span>
-          </a>
+          </button>
         </nav>
 
         <div className="sidebar-footer">
