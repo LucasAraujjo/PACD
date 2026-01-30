@@ -167,10 +167,41 @@ const MinhasAtividades = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormularioNovaEntrada(prev => ({
-      ...prev,
-      [name]: value
-    }));
+
+    // Aplicar máscara de tempo (00:00) para o campo tempo_total
+    if (name === 'tempo_total') {
+      let valorLimpo = value.replace(/\D/g, ''); // Remove tudo que não é dígito
+
+      if (valorLimpo.length > 4) {
+        valorLimpo = valorLimpo.slice(0, 4); // Limita a 4 dígitos
+      }
+
+      let valorFormatado = '';
+      if (valorLimpo.length > 0) {
+        if (valorLimpo.length <= 2) {
+          valorFormatado = valorLimpo;
+        } else {
+          valorFormatado = valorLimpo.slice(0, 2) + ':' + valorLimpo.slice(2);
+        }
+      }
+
+      setFormularioNovaEntrada(prev => ({
+        ...prev,
+        [name]: valorFormatado
+      }));
+    } else if (name === 'questoes' || name === 'acertos') {
+      // Aceitar apenas números nos campos de questões e acertos
+      const valorNumerico = value.replace(/\D/g, '');
+      setFormularioNovaEntrada(prev => ({
+        ...prev,
+        [name]: valorNumerico
+      }));
+    } else {
+      setFormularioNovaEntrada(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const submeterNovaEntrada = async (e) => {
@@ -564,13 +595,15 @@ const MinhasAtividades = () => {
                   <div className="form-group">
                     <label htmlFor="questoes">Questões *</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       id="questoes"
                       name="questoes"
+                      className="input-sem-setas"
                       value={formularioNovaEntrada.questoes}
                       onChange={handleInputChange}
                       required
-                      min="0"
+                      pattern="[0-9]*"
                       placeholder="Ex: 45"
                     />
                   </div>
@@ -578,13 +611,15 @@ const MinhasAtividades = () => {
                   <div className="form-group">
                     <label htmlFor="acertos">Acertos *</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       id="acertos"
                       name="acertos"
+                      className="input-sem-setas"
                       value={formularioNovaEntrada.acertos}
                       onChange={handleInputChange}
                       required
-                      min="0"
+                      pattern="[0-9]*"
                       placeholder="Ex: 42"
                     />
                   </div>
@@ -598,7 +633,9 @@ const MinhasAtividades = () => {
                       value={formularioNovaEntrada.tempo_total}
                       onChange={handleInputChange}
                       required
-                      placeholder="Ex: 02:00"
+                      maxLength="5"
+                      pattern="[0-9]{2}:[0-9]{2}"
+                      placeholder="00:00"
                     />
                   </div>
                 </div>

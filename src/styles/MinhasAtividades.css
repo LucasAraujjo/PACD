@@ -667,6 +667,17 @@
   transition: all 0.3s ease;
 }
 
+/* Remover setinhas dos inputs numéricos */
+.input-sem-setas::-webkit-outer-spin-button,
+.input-sem-setas::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input-sem-setas[type="number"] {
+  -moz-appearance: textfield;
+}
+
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
