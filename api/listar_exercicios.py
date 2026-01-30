@@ -73,6 +73,7 @@ def listar_atividades():
         
         var_dfDadosAtividades = pd.DataFrame(columns=var_listColAtividades)
         var_dfDadosAtividades = pd.concat([var_dfDadosAtividades, pd.DataFrame(var_dicDadosAtividades)], ignore_index=True)
+        var_dfDadosAtividades = var_dfDadosAtividades.query("TIPO != 'Redação'")
         print(f"✅ {len(var_dicDadosAtividades)} atividades encontradas")
 
         # Ler aba 'simulados'
