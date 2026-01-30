@@ -279,6 +279,11 @@
   color: #ffffff;
 }
 
+.badge-redação {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #ffffff;
+}
+
 /* Percentual */
 .percentual {
   display: inline-block;

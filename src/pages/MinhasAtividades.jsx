@@ -4,12 +4,14 @@ import '../styles/MinhasAtividades.css';
 
 const MinhasAtividades = () => {
   const [atividades, setAtividades] = useState([]);
+  const [redacoes, setRedacoes] = useState([]);
   const [atividadesFiltradas, setAtividadesFiltradas] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [erro, setErro] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Estados de filtro
+  const [filtroCategoria, setFiltroCategoria] = useState('Exercícios'); // 'Exercícios' ou 'Redações'
   const [filtroTipo, setFiltroTipo] = useState('');
   const [filtroBusca, setFiltroBusca] = useState('');
 
@@ -36,45 +38,82 @@ const MinhasAtividades = () => {
 
   // Carregar atividades ao montar o componente
   useEffect(() => {
-    carregarAtividades();
+    carregarDados();
   }, []);
 
-  // Aplicar filtros e ordenação quando atividades ou filtros mudarem
+  // Aplicar filtros e ordenação quando dados ou filtros mudarem
   useEffect(() => {
     aplicarFiltrosEOrdenacao();
-  }, [atividades, filtroTipo, filtroBusca, ordenacao]);
+  }, [atividades, redacoes, filtroCategoria, filtroTipo, filtroBusca, ordenacao]);
 
   const carregarAtividades = async () => {
     console.log('🔄 Carregando atividades...');
-    setIsLoading(true);
-    setErro('');
 
     try {
       const response = await fetch('/api/listar_atividades');
-      console.log('📥 Status da resposta:', response.status);
+      console.log('📥 Status da resposta (atividades):', response.status);
 
       const data = await response.json();
-      console.log('📊 Dados recebidos:', data);
+      console.log('📊 Dados recebidos (atividades):', data);
 
       if (response.ok && data.success) {
-        setAtividades(data.data);
-        console.log(`✅ ${data.total} atividades carregadas`);
+        // Filtrar apenas Simulados e Questões (excluir Redações)
+        const exercicios = data.data.filter(a => a.TIPO === 'Simulado' || a.TIPO === 'Questões');
+        setAtividades(exercicios);
+        console.log(`✅ ${exercicios.length} atividades (exercícios) carregadas`);
       } else {
         throw new Error(data.error || 'Erro ao carregar atividades');
       }
     } catch (error) {
       console.error('❌ Erro ao carregar atividades:', error);
-      setErro(`Erro ao carregar atividades: ${error.message}`);
+      throw error;
+    }
+  };
+
+  const carregarRedacoes = async () => {
+    console.log('🔄 Carregando redações...');
+
+    try {
+      const response = await fetch('/api/listar_redacoes');
+      console.log('📥 Status da resposta (redações):', response.status);
+
+      const data = await response.json();
+      console.log('📊 Dados recebidos (redações):', data);
+
+      if (response.ok && data.success) {
+        setRedacoes(data.data);
+        console.log(`✅ ${data.data.length} redações carregadas`);
+      } else {
+        throw new Error(data.error || 'Erro ao carregar redações');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar redações:', error);
+      throw error;
+    }
+  };
+
+  const carregarDados = async () => {
+    console.log('🔄 Carregando todos os dados...');
+    setIsLoading(true);
+    setErro('');
+
+    try {
+      await Promise.all([carregarAtividades(), carregarRedacoes()]);
+      console.log('✅ Todos os dados carregados com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao carregar dados:', error);
+      setErro(`Erro ao carregar dados: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
   const aplicarFiltrosEOrdenacao = () => {
-    let resultado = [...atividades];
+    // Selecionar dados baseado na categoria
+    let resultado = filtroCategoria === 'Exercícios' ? [...atividades] : [...redacoes];
 
-    // Filtro por tipo
-    if (filtroTipo) {
+    // Filtro por tipo (apenas para Exercícios)
+    if (filtroCategoria === 'Exercícios' && filtroTipo) {
       resultado = resultado.filter(a => a.TIPO === filtroTipo);
     }
 
@@ -94,7 +133,8 @@ const MinhasAtividades = () => {
       let valorB = b[campo] || '';
 
       // Tratamento especial para números
-      if (campo === 'ID_ATIVIDADE' || campo === 'QUESTOES' || campo === 'ACERTOS') {
+      if (campo === 'ID_ATIVIDADE' || campo === 'QUESTOES' || campo === 'ACERTOS' ||
+          campo === 'C1' || campo === 'C2' || campo === 'C3' || campo === 'C4' || campo === 'C5') {
         valorA = parseFloat(valorA) || 0;
         valorB = parseFloat(valorB) || 0;
       }
@@ -128,6 +168,11 @@ const MinhasAtividades = () => {
   const limparFiltros = () => {
     setFiltroTipo('');
     setFiltroBusca('');
+  };
+
+  const handleCategoriaChange = (categoria) => {
+    setFiltroCategoria(categoria);
+    setFiltroTipo(''); // Limpar filtro de tipo ao mudar categoria
   };
 
   const abrirDetalhes = (atividade) => {
@@ -298,9 +343,6 @@ const MinhasAtividades = () => {
     return null;
   };
 
-  // Obter tipos únicos para filtro
-  const tiposUnicos = [...new Set(atividades.map(a => a.TIPO))].filter(Boolean);
-
   return (
     <>
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -318,9 +360,9 @@ const MinhasAtividades = () => {
           <h1 className="page-titulo">Minhas Atividades 📋</h1>
           <div className="header-actions">
             <span className="contador-atividades">
-              {atividadesFiltradas.length} de {atividades.length}
+              {atividadesFiltradas.length} de {filtroCategoria === 'Exercícios' ? atividades.length : redacoes.length}
             </span>
-            <button onClick={carregarAtividades} className="botao-recarregar" disabled={isLoading}>
+            <button onClick={carregarDados} className="botao-recarregar" disabled={isLoading}>
               {isLoading ? '🔄' : '↻'}
             </button>
           </div>
@@ -344,15 +386,25 @@ const MinhasAtividades = () => {
 
             <div className="filtro-grupo">
               <select
-                value={filtroTipo}
-                onChange={(e) => setFiltroTipo(e.target.value)}
+                value={filtroCategoria}
+                onChange={(e) => handleCategoriaChange(e.target.value)}
                 className="filtro-select"
               >
-                <option value="">Todos os tipos</option>
-                {tiposUnicos.map(tipo => (
-                  <option key={tipo} value={tipo}>{tipo}</option>
-                ))}
+                <option value="Exercícios">Exercícios</option>
+                <option value="Redações">Redações</option>
               </select>
+
+              {filtroCategoria === 'Exercícios' && (
+                <select
+                  value={filtroTipo}
+                  onChange={(e) => setFiltroTipo(e.target.value)}
+                  className="filtro-select"
+                >
+                  <option value="">Todos os tipos</option>
+                  <option value="Simulado">Simulado</option>
+                  <option value="Questões">Questões</option>
+                </select>
+              )}
 
               {(filtroTipo || filtroBusca) && (
                 <button onClick={limparFiltros} className="botao-limpar-filtros">
@@ -393,13 +445,41 @@ const MinhasAtividades = () => {
                     <th onClick={() => alternarOrdenacao('TIPO')}>
                       Tipo {getIconeOrdenacao('TIPO')}
                     </th>
-                    <th onClick={() => alternarOrdenacao('QUESTOES')}>
-                      Questões {getIconeOrdenacao('QUESTOES')}
-                    </th>
-                    <th onClick={() => alternarOrdenacao('ACERTOS')}>
-                      Acertos {getIconeOrdenacao('ACERTOS')}
-                    </th>
-                    <th>Aproveitamento</th>
+
+                    {/* Colunas específicas para Exercícios */}
+                    {filtroCategoria === 'Exercícios' && (
+                      <>
+                        <th onClick={() => alternarOrdenacao('QUESTOES')}>
+                          Questões {getIconeOrdenacao('QUESTOES')}
+                        </th>
+                        <th onClick={() => alternarOrdenacao('ACERTOS')}>
+                          Acertos {getIconeOrdenacao('ACERTOS')}
+                        </th>
+                        <th>Aproveitamento</th>
+                      </>
+                    )}
+
+                    {/* Colunas específicas para Redações */}
+                    {filtroCategoria === 'Redações' && (
+                      <>
+                        <th onClick={() => alternarOrdenacao('C1')}>
+                          C1 {getIconeOrdenacao('C1')}
+                        </th>
+                        <th onClick={() => alternarOrdenacao('C2')}>
+                          C2 {getIconeOrdenacao('C2')}
+                        </th>
+                        <th onClick={() => alternarOrdenacao('C3')}>
+                          C3 {getIconeOrdenacao('C3')}
+                        </th>
+                        <th onClick={() => alternarOrdenacao('C4')}>
+                          C4 {getIconeOrdenacao('C4')}
+                        </th>
+                        <th onClick={() => alternarOrdenacao('C5')}>
+                          C5 {getIconeOrdenacao('C5')}
+                        </th>
+                      </>
+                    )}
+
                     <th onClick={() => alternarOrdenacao('DT_INICIO')}>
                       Data de Início {getIconeOrdenacao('DT_INICIO')}
                     </th>
@@ -420,15 +500,33 @@ const MinhasAtividades = () => {
                             {atividade.TIPO}
                           </span>
                         </td>
-                        <td className="celula-numero">{atividade.QUESTOES || '-'}</td>
-                        <td className="celula-numero">{atividade.ACERTOS || '-'}</td>
-                        <td className="celula-percentual">
-                          {atividade.QUESTOES ? (
-                            <span className={`percentual ${percentual >= 70 ? 'bom' : percentual >= 50 ? 'medio' : 'baixo'}`}>
-                              {percentual}%
-                            </span>
-                          ) : '-'}
-                        </td>
+
+                        {/* Células específicas para Exercícios */}
+                        {filtroCategoria === 'Exercícios' && (
+                          <>
+                            <td className="celula-numero">{atividade.QUESTOES || '-'}</td>
+                            <td className="celula-numero">{atividade.ACERTOS || '-'}</td>
+                            <td className="celula-percentual">
+                              {atividade.QUESTOES ? (
+                                <span className={`percentual ${percentual >= 70 ? 'bom' : percentual >= 50 ? 'medio' : 'baixo'}`}>
+                                  {percentual}%
+                                </span>
+                              ) : '-'}
+                            </td>
+                          </>
+                        )}
+
+                        {/* Células específicas para Redações */}
+                        {filtroCategoria === 'Redações' && (
+                          <>
+                            <td className="celula-numero">{atividade.C1 || '-'}</td>
+                            <td className="celula-numero">{atividade.C2 || '-'}</td>
+                            <td className="celula-numero">{atividade.C3 || '-'}</td>
+                            <td className="celula-numero">{atividade.C4 || '-'}</td>
+                            <td className="celula-numero">{atividade.C5 || '-'}</td>
+                          </>
+                        )}
+
                         <td className="celula-data">{atividade.DT_INICIO}</td>
                         <td>
                           <button
