@@ -153,7 +153,7 @@ def listar_atividades():
             if var_strTipo == 'Simulado':
                 item['INFO'] = var_listSimuladosPorAtividade.get(var_intIdAtividade, [])
 
-            elif var_strTipo == 'QUESTOES':
+            elif var_strTipo == 'Questões':
                 item['INFO'] = var_listQuestoesPorAtividade.get(var_intIdAtividade, [])
 
             var_jsonFinal.append(item)
