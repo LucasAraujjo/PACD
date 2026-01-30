@@ -332,7 +332,7 @@ const MinhasAtividades = () => {
                         const percentual = ((questao.ACERTOS / questao.QUESTOES) * 100).toFixed(1);
                         return (
                           <tr key={index}>
-                            <td>{questao.ID_QUESTAO}</td>
+                            <td>{questao.ID_QUESTOES}</td>
                             <td>{questao.AREA}</td>
                             <td>{questao.MATERIA}</td>
                             <td>{questao.ASSUNTO}</td>
