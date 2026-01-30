@@ -29,6 +29,7 @@ const MinhasAtividades = () => {
     questoes: '',
     acertos: '',
     tempo_total: '',
+    dt_realizado: '',
     comentarios: ''
   });
   const [enviandoNovaEntrada, setEnviandoNovaEntrada] = useState(false);
@@ -147,6 +148,7 @@ const MinhasAtividades = () => {
       questoes: '',
       acertos: '',
       tempo_total: '',
+      dt_realizado: '',
       comentarios: ''
     });
     setModalNovaEntradaAberto(true);
@@ -161,6 +163,7 @@ const MinhasAtividades = () => {
       questoes: '',
       acertos: '',
       tempo_total: '',
+      dt_realizado: '',
       comentarios: ''
     });
   };
@@ -182,6 +185,29 @@ const MinhasAtividades = () => {
           valorFormatado = valorLimpo;
         } else {
           valorFormatado = valorLimpo.slice(0, 2) + ':' + valorLimpo.slice(2);
+        }
+      }
+
+      setFormularioNovaEntrada(prev => ({
+        ...prev,
+        [name]: valorFormatado
+      }));
+    } else if (name === 'dt_realizado') {
+      // Aplicar máscara de data (00/00/0000) para o campo dt_realizado
+      let valorLimpo = value.replace(/\D/g, ''); // Remove tudo que não é dígito
+
+      if (valorLimpo.length > 8) {
+        valorLimpo = valorLimpo.slice(0, 8); // Limita a 8 dígitos
+      }
+
+      let valorFormatado = '';
+      if (valorLimpo.length > 0) {
+        if (valorLimpo.length <= 2) {
+          valorFormatado = valorLimpo;
+        } else if (valorLimpo.length <= 4) {
+          valorFormatado = valorLimpo.slice(0, 2) + '/' + valorLimpo.slice(2);
+        } else {
+          valorFormatado = valorLimpo.slice(0, 2) + '/' + valorLimpo.slice(2, 4) + '/' + valorLimpo.slice(4);
         }
       }
 
@@ -218,6 +244,7 @@ const MinhasAtividades = () => {
         questoes: parseInt(formularioNovaEntrada.questoes),
         acertos: parseInt(formularioNovaEntrada.acertos),
         tempo_total: formularioNovaEntrada.tempo_total,
+        dt_realizado: formularioNovaEntrada.dt_realizado,
         comentarios: formularioNovaEntrada.comentarios
       };
 
@@ -638,6 +665,22 @@ const MinhasAtividades = () => {
                       placeholder="00:00"
                     />
                   </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="dt_realizado">Data Realizado *</label>
+                  <input
+                    type="text"
+                    id="dt_realizado"
+                    name="dt_realizado"
+                    value={formularioNovaEntrada.dt_realizado}
+                    onChange={handleInputChange}
+                    required
+                    maxLength="10"
+                    pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
+                    placeholder="00/00/0000"
+                    inputMode="numeric"
+                  />
                 </div>
 
                 <div className="form-group">
