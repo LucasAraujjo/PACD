@@ -137,6 +137,12 @@ const MinhasAtividades = () => {
         valorB = parseFloat(valorB) || 0;
       }
 
+      // Tratamento especial para TOTAL (soma das competências)
+      if (campo === 'TOTAL') {
+        valorA = (a.C1 || 0) + (a.C2 || 0) + (a.C3 || 0) + (a.C4 || 0) + (a.C5 || 0);
+        valorB = (b.C1 || 0) + (b.C2 || 0) + (b.C3 || 0) + (b.C4 || 0) + (b.C5 || 0);
+      }
+
       // Tratamento especial para datas
       if (campo === 'DT_INICIO') {
         valorA = new Date(valorA.split('/').reverse().join('-')).getTime() || 0;
@@ -475,6 +481,9 @@ const MinhasAtividades = () => {
                         <th onClick={() => alternarOrdenacao('C5')}>
                           C5 {getIconeOrdenacao('C5')}
                         </th>
+                        <th onClick={() => alternarOrdenacao('TOTAL')}>
+                          Total {getIconeOrdenacao('TOTAL')}
+                        </th>
                       </>
                     )}
 
@@ -522,6 +531,14 @@ const MinhasAtividades = () => {
                             <td className="celula-numero">{atividade.C3 || '-'}</td>
                             <td className="celula-numero">{atividade.C4 || '-'}</td>
                             <td className="celula-numero">{atividade.C5 || '-'}</td>
+                            <td className="celula-numero celula-total">
+                              {(() => {
+                                const total = (atividade.C1 || 0) + (atividade.C2 || 0) +
+                                              (atividade.C3 || 0) + (atividade.C4 || 0) +
+                                              (atividade.C5 || 0);
+                                return total > 0 ? total : '-';
+                              })()}
+                            </td>
                           </>
                         )}
 

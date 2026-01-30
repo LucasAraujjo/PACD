@@ -512,6 +512,12 @@
   white-space: nowrap;
 }
 
+.celula-total {
+  font-weight: 700;
+  color: #a8b3ff;
+  background: rgba(102, 126, 234, 0.1);
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .page-header {
