@@ -85,11 +85,9 @@ def inserir_simulado(planilha, id_atividade, dados):
     linha_simulado = [
         id_simulado,
         id_atividade,
-        data_execucao,
         dados.get('area', ''),
         dados.get('questoes', ''),
         dados.get('acertos', ''),
-        dados.get('tempo_total', ''),
         dados.get('comentarios', '')
     ]
 

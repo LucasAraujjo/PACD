@@ -33,12 +33,30 @@ const NovaAtividade = () => {
     'Linguagens'
   ];
 
+  const formatarTempo = (value) => {
+    // Remove tudo que não é número
+    const numeros = value.replace(/\D/g, '');
+
+    // Limita a 4 dígitos
+    const limitado = numeros.slice(0, 4);
+
+    // Aplica a máscara 00:00
+    if (limitado.length <= 2) {
+      return limitado;
+    }
+    return `${limitado.slice(0, 2)}:${limitado.slice(2)}`;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log('📝 Campo alterado:', name, '=', value);
+
+    // Aplica máscara se for o campo tempo_total
+    const valorFinal = name === 'tempo_total' ? formatarTempo(value) : value;
+
+    console.log('📝 Campo alterado:', name, '=', valorFinal);
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: valorFinal
     }));
   };
 
@@ -58,6 +76,20 @@ const NovaAtividade = () => {
     if (!formData.tempo_total) {
       console.error('❌ Validação falhou: tempo total não preenchido');
       setMensagem({ tipo: 'erro', texto: 'O tempo total é obrigatório' });
+      return false;
+    }
+    // Validar formato do tempo (deve ser 00:00)
+    const regexTempo = /^\d{2}:\d{2}$/;
+    if (!regexTempo.test(formData.tempo_total)) {
+      console.error('❌ Validação falhou: formato de tempo inválido');
+      setMensagem({ tipo: 'erro', texto: 'O tempo deve estar no formato 00:00 (horas:minutos)' });
+      return false;
+    }
+    // Validar se os minutos são válidos (00-59)
+    const [, minutos] = formData.tempo_total.split(':').map(Number);
+    if (minutos > 59) {
+      console.error('❌ Validação falhou: minutos inválidos');
+      setMensagem({ tipo: 'erro', texto: 'Os minutos devem ser entre 00 e 59' });
       return false;
     }
 
@@ -276,9 +308,10 @@ const NovaAtividade = () => {
               name="tempo_total"
               value={formData.tempo_total}
               onChange={handleChange}
-              placeholder="Ex: 2:30 (H:M)"
+              placeholder="00:00"
               disabled={isLoading}
-              pattern="[0-9]+:[0-5][0-9]"
+              maxLength={5}
+              inputMode="numeric"
             />
           </div>
 
