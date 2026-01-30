@@ -47,25 +47,23 @@ const MinhasAtividades = () => {
   }, [atividades, redacoes, filtroCategoria, filtroTipo, filtroBusca, ordenacao]);
 
   const carregarAtividades = async () => {
-    console.log('🔄 Carregando atividades...');
+    console.log('🔄 Carregando exercícios...');
 
     try {
-      const response = await fetch('/api/listar_atividades');
-      console.log('📥 Status da resposta (atividades):', response.status);
+      const response = await fetch('/api/listar_exercicios');
+      console.log('📥 Status da resposta (exercícios):', response.status);
 
       const data = await response.json();
-      console.log('📊 Dados recebidos (atividades):', data);
+      console.log('📊 Dados recebidos (exercícios):', data);
 
       if (response.ok && data.success) {
-        // Filtrar apenas Simulados e Questões (excluir Redações)
-        const exercicios = data.data.filter(a => a.TIPO === 'Simulado' || a.TIPO === 'Questões');
-        setAtividades(exercicios);
-        console.log(`✅ ${exercicios.length} atividades (exercícios) carregadas`);
+        setAtividades(data.data);
+        console.log(`✅ ${data.data.length} exercícios carregados`);
       } else {
-        throw new Error(data.error || 'Erro ao carregar atividades');
+        throw new Error(data.error || 'Erro ao carregar exercícios');
       }
     } catch (error) {
-      console.error('❌ Erro ao carregar atividades:', error);
+      console.error('❌ Erro ao carregar exercícios:', error);
       throw error;
     }
   };
@@ -332,7 +330,7 @@ const MinhasAtividades = () => {
 
   const buscarAtividadeAtualizada = async (idAtividade) => {
     try {
-      const response = await fetch('/api/listar_atividades');
+      const response = await fetch('/api/listar_exercicios');
       const data = await response.json();
       if (response.ok && data.success) {
         return data.data.find(a => a.ID_ATIVIDADE === idAtividade);
