@@ -82,14 +82,15 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 2rem;
-  height: calc(100vh - 80px);
+  padding: 1.5rem;
+  height: 90vh;
 }
 
 .main-content {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
   overflow: hidden;
 }
 
@@ -98,8 +99,8 @@
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
   flex-shrink: 0;
 }
 
