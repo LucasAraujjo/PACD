@@ -1,25 +1,66 @@
 /* Minhas Atividades - Estilos */
 
-.header-minhas-atividades {
+/* Container Principal */
+.minhas-atividades-container {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  height: 100vh;
+  background: #000000;
+  overflow: hidden;
+}
+
+/* Header Fixo */
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.page-titulo {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  flex: 1;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
   gap: 1rem;
 }
 
+.contador-atividades {
+  padding: 0.5rem 1rem;
+  background: rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(102, 126, 234, 0.4);
+  border-radius: 8px;
+  color: #a8b3ff;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .botao-recarregar {
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #ffffff;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  white-space: nowrap;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .botao-recarregar:hover:not(:disabled) {
@@ -32,13 +73,31 @@
   cursor: not-allowed;
 }
 
+/* Main Content - 90% da tela */
+.page-main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  height: calc(100vh - 80px);
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
 /* Filtros */
 .filtros {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  flex-shrink: 0;
 }
 
 .filtro-grupo {
@@ -115,10 +174,12 @@
 
 /* Tabela */
 .tabela-container {
-  overflow-x: auto;
+  flex: 1;
+  overflow: auto;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  height: 100%;
 }
 
 .tabela-atividades {
@@ -243,15 +304,19 @@
 
 /* Estados */
 .loading {
-  text-align: center;
-  padding: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
   color: rgba(255, 255, 255, 0.6);
   font-size: 1.1rem;
 }
 
 .vazio {
-  text-align: center;
-  padding: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
   color: rgba(255, 255, 255, 0.5);
   font-size: 1rem;
 }
@@ -411,13 +476,21 @@
 
 /* Responsividade */
 @media (max-width: 768px) {
-  .header-minhas-atividades {
-    flex-direction: column;
-    align-items: stretch;
+  .page-header {
+    padding: 1rem;
+    gap: 1rem;
   }
 
-  .botao-recarregar {
-    width: 100%;
+  .page-titulo {
+    font-size: 1.3rem;
+  }
+
+  .contador-atividades {
+    display: none;
+  }
+
+  .page-main {
+    padding: 1rem;
   }
 
   .filtro-grupo {
@@ -467,6 +540,24 @@
 }
 
 @media (max-width: 480px) {
+  .page-header {
+    padding: 0.75rem;
+  }
+
+  .page-titulo {
+    font-size: 1.1rem;
+  }
+
+  .botao-recarregar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .page-main {
+    padding: 0.75rem;
+  }
+
   .tabela-atividades {
     font-size: 0.75rem;
   }

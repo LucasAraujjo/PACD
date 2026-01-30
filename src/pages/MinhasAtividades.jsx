@@ -133,27 +133,30 @@ const MinhasAtividades = () => {
     <>
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="container">
-        <button
-          className="menu-button"
-          onClick={() => setSidebarOpen(true)}
-          aria-label="Abrir menu"
-        >
-          ☰
-        </button>
-
-        <div className="card">
-          <div className="header-minhas-atividades">
-            <div>
-              <h1 className="titulo">Minhas Atividades</h1>
-              <p className="subtitulo">
-                {atividadesFiltradas.length} de {atividades.length} atividade(s)
-              </p>
-            </div>
+      <div className="minhas-atividades-container">
+        {/* Header Fixo */}
+        <header className="page-header">
+          <button
+            className="menu-button"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Abrir menu"
+          >
+            ☰
+          </button>
+          <h1 className="page-titulo">Minhas Atividades 📋</h1>
+          <div className="header-actions">
+            <span className="contador-atividades">
+              {atividadesFiltradas.length} de {atividades.length}
+            </span>
             <button onClick={carregarAtividades} className="botao-recarregar" disabled={isLoading}>
-              {isLoading ? '🔄' : '↻'} Atualizar
+              {isLoading ? '🔄' : '↻'}
             </button>
           </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="page-main">
+          <div className="main-content">
 
           {/* Filtros */}
           <div className="filtros">
@@ -249,7 +252,8 @@ const MinhasAtividades = () => {
               </table>
             </div>
           )}
-        </div>
+          </div>
+        </main>
       </div>
 
       {/* Modal de Detalhes */}
