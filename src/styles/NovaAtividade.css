@@ -220,6 +220,17 @@ body {
   -moz-appearance: textfield;
 }
 
+/* Remover setinhas dos inputs com classe input-sem-setas */
+.input-sem-setas::-webkit-outer-spin-button,
+.input-sem-setas::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input-sem-setas[type="number"] {
+  -moz-appearance: textfield;
+}
+
 /* Botão de submit */
 .botao-submit {
   background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);

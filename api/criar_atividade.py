@@ -62,6 +62,12 @@ def gerar_id_questao():
     rand = random.randint(0, 9)
     return f"QST{base}{rand}"
 
+def gerar_id_redacao():
+    """Gera ID único para redação"""
+    base = datetime.now().strftime("%H%M%S")
+    rand = random.randint(0, 9)
+    return f"RDC{base}{rand}"
+
 
 def inserir_simulado(planilha, id_atividade, dados):
     """
@@ -90,6 +96,7 @@ def inserir_simulado(planilha, id_atividade, dados):
         dados.get('acertos', ''),
         dados.get('tempo_total', ''),
         dados.get('comentarios', ''),
+        dados.get('dt_inicio',''),
         data_execucao
     ]
 
@@ -129,6 +136,7 @@ def inserir_questoes(planilha, id_atividade, dados):
         dados.get('acertos', ''),
         dados.get('tempo_total', ''),
         dados.get('comentarios', ''),
+        dados.get('dt_inicio',''),
         data_execucao
     ]
 
@@ -137,6 +145,46 @@ def inserir_questoes(planilha, id_atividade, dados):
     print(f"✅ Questão {id_questao} inserida com sucesso!")
 
     return id_questao
+
+def inserir_redacao(planilha, id_atividade, dados):
+    """
+    Insere um registro de questão na aba 'questoes'
+
+    Args:
+        planilha: Objeto da planilha Google Sheets
+        id_atividade: ID da atividade relacionada
+        dados: Dicionário com os dados da questão
+
+    Returns:
+        str: ID da questão criada
+    """
+    print("📊 Função inserir_questoes iniciada")
+
+    aba_questoes = planilha.worksheet("redacoes")
+    id_redacao = gerar_id_redacao()
+    data_execucao = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+
+    # Campos: id_questao, id_atividade, data_execucao, area, materia, assunto, questoes, acertos, tempo, comentarios
+    linha_redacao = [
+        id_redacao,
+        id_atividade,
+        'Redação',
+        dados.get('c1', ''),
+        dados.get('c2', ''),
+        dados.get('c3', ''),
+        dados.get('c4', ''),
+        dados.get('c5', ''),
+        dados.get('tempo_total', ''),
+        dados.get('comentarios', ''),
+        dados.get('dt_inicio',''),
+        data_execucao
+    ]
+
+    print(f"📝 Inserindo redação: {linha_redacao}")
+    aba_questoes.append_row(linha_redacao)
+    print(f"✅ Questão {linha_redacao} inserida com sucesso!")
+
+    return id_redacao
 
 
 def inserir_atividade(dados):
@@ -183,6 +231,7 @@ def inserir_atividade(dados):
             id_atividade,
             dados.get('titulo', ''),
             dados.get('tipo', ''),
+            dados.get('dt_inicio',''),
             data_inclusao
         ]
         print(f"📝 Linha a ser inserida em 'atividades': {linha}")
@@ -202,6 +251,9 @@ def inserir_atividade(dados):
         elif tipo == 'Questões':
             print("📋 Tipo é Questões, inserindo na tabela 'questoes'...")
             id_secundario = inserir_questoes(planilha, id_atividade, dados)
+        elif tipo == 'Redação':
+            print("📋 Tipo é Questões, inserindo na tabela 'questoes'...")
+            id_secundario = inserir_redacao(planilha, id_atividade, dados)
 
         resultado = {
             "success": True,

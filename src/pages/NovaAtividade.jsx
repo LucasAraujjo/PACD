@@ -13,7 +13,12 @@ const NovaAtividade = () => {
     materia: '',
     assunto: '',
     questoes: '',
-    acertos: ''
+    acertos: '',
+    c1: '',
+    c2: '',
+    c3: '',
+    c4: '',
+    c5: ''
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +29,7 @@ const NovaAtividade = () => {
   const tiposAtividade = [
     'Simulado',
     'Questões',
+    'Redação'
   ];
 
   // Áreas do conhecimento para simulados
@@ -74,6 +80,11 @@ const NovaAtividade = () => {
       valorFinal = formatarTempo(value);
     } else if (name === 'dt_inicio') {
       valorFinal = formatarData(value);
+    } else if (['c1', 'c2', 'c3', 'c4', 'c5'].includes(name)) {
+      // Campos de competência: apenas números, máximo 200
+      const valorNumerico = value.replace(/\D/g, '');
+      const valorInt = parseInt(valorNumerico) || 0;
+      valorFinal = valorInt > 200 ? '200' : valorNumerico;
     }
 
     console.log('📝 Campo alterado:', name, '=', valorFinal);
@@ -193,6 +204,28 @@ const NovaAtividade = () => {
       }
     }
 
+    // Validações específicas para Redação
+    if (formData.tipo === 'Redação') {
+      const competencias = ['c1', 'c2', 'c3', 'c4', 'c5'];
+      for (let i = 0; i < competencias.length; i++) {
+        const comp = competencias[i];
+        const valor = formData[comp];
+
+        if (valor === '') {
+          console.error(`❌ Validação falhou: competência ${i + 1} não preenchida`);
+          setMensagem({ tipo: 'erro', texto: `Informe a nota da Competência ${i + 1}` });
+          return false;
+        }
+
+        const valorInt = parseInt(valor);
+        if (valorInt < 0 || valorInt > 200) {
+          console.error(`❌ Validação falhou: competência ${i + 1} com valor inválido`);
+          setMensagem({ tipo: 'erro', texto: `A Competência ${i + 1} deve ser entre 0 e 200` });
+          return false;
+        }
+      }
+    }
+
     console.log('✅ Validação passou!');
     return true;
   };
@@ -259,7 +292,12 @@ const NovaAtividade = () => {
           materia: '',
           assunto: '',
           questoes: '',
-          acertos: ''
+          acertos: '',
+          c1: '',
+          c2: '',
+          c3: '',
+          c4: '',
+          c5: ''
         });
       } else {
         console.error('❌ Erro na resposta:', data);
@@ -522,6 +560,101 @@ const NovaAtividade = () => {
                   placeholder="Questões acertadas"
                   disabled={isLoading}
                   min="0"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Campos específicos para Redação */}
+          {formData.tipo === 'Redação' && (
+            <>
+              <div className="campo">
+                <label htmlFor="c1">
+                  Competência 1 <span className="obrigatorio">*</span>
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  id="c1"
+                  name="c1"
+                  className="input-sem-setas"
+                  value={formData.c1}
+                  onChange={handleChange}
+                  placeholder="0 - 200"
+                  disabled={isLoading}
+                  pattern="[0-9]*"
+                />
+              </div>
+
+              <div className="campo">
+                <label htmlFor="c2">
+                  Competência 2 <span className="obrigatorio">*</span>
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  id="c2"
+                  name="c2"
+                  className="input-sem-setas"
+                  value={formData.c2}
+                  onChange={handleChange}
+                  placeholder="0 - 200"
+                  disabled={isLoading}
+                  pattern="[0-9]*"
+                />
+              </div>
+
+              <div className="campo">
+                <label htmlFor="c3">
+                  Competência 3 <span className="obrigatorio">*</span>
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  id="c3"
+                  name="c3"
+                  className="input-sem-setas"
+                  value={formData.c3}
+                  onChange={handleChange}
+                  placeholder="0 - 200"
+                  disabled={isLoading}
+                  pattern="[0-9]*"
+                />
+              </div>
+
+              <div className="campo">
+                <label htmlFor="c4">
+                  Competência 4 <span className="obrigatorio">*</span>
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  id="c4"
+                  name="c4"
+                  className="input-sem-setas"
+                  value={formData.c4}
+                  onChange={handleChange}
+                  placeholder="0 - 200"
+                  disabled={isLoading}
+                  pattern="[0-9]*"
+                />
+              </div>
+
+              <div className="campo">
+                <label htmlFor="c5">
+                  Competência 5 <span className="obrigatorio">*</span>
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  id="c5"
+                  name="c5"
+                  className="input-sem-setas"
+                  value={formData.c5}
+                  onChange={handleChange}
+                  placeholder="0 - 200"
+                  disabled={isLoading}
+                  pattern="[0-9]*"
                 />
               </div>
             </>

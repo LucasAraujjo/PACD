@@ -61,6 +61,7 @@ def inserir_simulado(id_atividade, dados):
         dados.get("acertos", ""),
         dados.get("tempo_total", ""),
         dados.get("comentarios", ""),
+        dados.get("dt_realizado", ""),
         data_execucao
     ]
 
@@ -127,7 +128,7 @@ if __name__ == '__main__':
         "acertos": 42,
         "tempo_total": "02:00",
         "comentarios": "Teste criar_simulado",
-        "dt_realizado": data_execucao
+        "dt_realizado": '01/01/2025'
     }
 
     inserir_simulado(12391, param)

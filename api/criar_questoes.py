@@ -63,6 +63,7 @@ def inserir_questoes(id_atividade, dados):
         dados.get("acertos", ""),
         dados.get("tempo_total", ""),
         dados.get("comentarios", ""),
+        dados.get("dt_realizado", ""),
         data_execucao
     ]
 
@@ -92,7 +93,7 @@ class handler(BaseHTTPRequestHandler):
                 }).encode())
                 return
 
-            resultado = inserir_simulado(id_atividade, dados)
+            resultado = inserir_questoes(id_atividade, dados)
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -131,7 +132,7 @@ if __name__ == '__main__':
         "acertos": 42,
         "tempo_total": "02:00",
         "comentarios": "Teste criar_questoes",
-        "dt_realizado": data_execucao
+        "dt_realizado": '01/01/2025'
     }
 
     inserir_questoes(15272, param)
