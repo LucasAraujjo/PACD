@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Login.css';
 
@@ -10,6 +11,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,9 +39,11 @@ const Login = () => {
 
       if (!result.success) {
         setError(result.error);
+        setIsLoading(false);
+      } else {
+        // Login bem-sucedido, redirecionar para página principal
+        navigate('/nova-atividade');
       }
-
-      setIsLoading(false);
     }, 500);
   };
 

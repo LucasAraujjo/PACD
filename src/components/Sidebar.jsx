@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Sidebar.css';
 
@@ -36,13 +35,13 @@ const Sidebar = ({ isOpen, onClose }) => {
         </div>
 
         <nav className="sidebar-nav">
-          <a href="/minhas-atividades" className="sidebar-nav-item">
-            <span className="sidebar-nav-icon">📋</span>
-            <span>Minhas Atividades</span>
-          </a>
           <a href="/nova-atividade" className="sidebar-nav-item">
             <span className="sidebar-nav-icon">📝</span>
             <span>Nova Atividade</span>
+          </a>
+          <a href="/minhas-atividades" className="sidebar-nav-item">
+            <span className="sidebar-nav-icon">📋</span>
+            <span>Minhas Atividades</span>
           </a>
           <a href="#" className="sidebar-nav-item disabled">
             <span className="sidebar-nav-icon">📊</span>

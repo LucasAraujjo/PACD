@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
@@ -48,7 +47,7 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/minhas-atividades" />} />
+          <Route path="/" element={<Navigate to="/nova-atividade" />} />
         </Routes>
       </Router>
     </AuthProvider>
