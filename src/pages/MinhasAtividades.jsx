@@ -80,9 +80,9 @@ const MinhasAtividades = () => {
       let valorB = b[campo] || '';
 
       // Tratamento especial para números
-      if (campo === 'ID_ATIVIDADE') {
-        valorA = parseInt(valorA) || 0;
-        valorB = parseInt(valorB) || 0;
+      if (campo === 'ID_ATIVIDADE' || campo === 'QUESTOES' || campo === 'ACERTOS') {
+        valorA = parseFloat(valorA) || 0;
+        valorB = parseFloat(valorB) || 0;
       }
 
       // Tratamento especial para datas
@@ -221,6 +221,13 @@ const MinhasAtividades = () => {
                     <th onClick={() => alternarOrdenacao('TIPO')}>
                       Tipo {getIconeOrdenacao('TIPO')}
                     </th>
+                    <th onClick={() => alternarOrdenacao('QUESTOES')}>
+                      Questões {getIconeOrdenacao('QUESTOES')}
+                    </th>
+                    <th onClick={() => alternarOrdenacao('ACERTOS')}>
+                      Acertos {getIconeOrdenacao('ACERTOS')}
+                    </th>
+                    <th>Aproveitamento</th>
                     <th onClick={() => alternarOrdenacao('DT_ATUALIZACAO')}>
                       Data de Atualização {getIconeOrdenacao('DT_ATUALIZACAO')}
                     </th>
@@ -228,26 +235,40 @@ const MinhasAtividades = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {atividadesFiltradas.map((atividade) => (
-                    <tr key={atividade.ID_ATIVIDADE}>
-                      <td className="celula-numero">{atividade.ID_ATIVIDADE}</td>
-                      <td className="celula-titulo">{atividade.TITULO}</td>
-                      <td>
-                        <span className={`badge badge-${atividade.TIPO?.toLowerCase()}`}>
-                          {atividade.TIPO}
-                        </span>
-                      </td>
-                      <td className="celula-data">{atividade.DT_ATUALIZACAO}</td>
-                      <td>
-                        <button
-                          className="botao-detalhes"
-                          onClick={() => abrirDetalhes(atividade)}
-                        >
-                          Ver Detalhes
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {atividadesFiltradas.map((atividade) => {
+                    const percentual = atividade.QUESTOES ?
+                      ((atividade.ACERTOS / atividade.QUESTOES) * 100).toFixed(1) : 0;
+
+                    return (
+                      <tr key={atividade.ID_ATIVIDADE}>
+                        <td className="celula-numero">{atividade.ID_ATIVIDADE}</td>
+                        <td className="celula-titulo">{atividade.TITULO}</td>
+                        <td>
+                          <span className={`badge badge-${atividade.TIPO?.toLowerCase()}`}>
+                            {atividade.TIPO}
+                          </span>
+                        </td>
+                        <td className="celula-numero">{atividade.QUESTOES || '-'}</td>
+                        <td className="celula-numero">{atividade.ACERTOS || '-'}</td>
+                        <td className="celula-percentual">
+                          {atividade.QUESTOES ? (
+                            <span className={`percentual ${percentual >= 70 ? 'bom' : percentual >= 50 ? 'medio' : 'baixo'}`}>
+                              {percentual}%
+                            </span>
+                          ) : '-'}
+                        </td>
+                        <td className="celula-data">{atividade.DT_ATUALIZACAO}</td>
+                        <td>
+                          <button
+                            className="botao-detalhes"
+                            onClick={() => abrirDetalhes(atividade)}
+                          >
+                            Ver Detalhes
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
