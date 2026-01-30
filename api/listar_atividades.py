@@ -69,7 +69,7 @@ def listar_atividades():
         var_objAbaAtividades = varobjPlanilha.worksheet("atividades")
         var_dicDadosAtividades = var_objAbaAtividades.get_all_records()
         
-        var_listColAtividades = ['ID_ATIVIDADE', 'TITULO', 'TIPO', 'DT_ATUALIZACAO']
+        var_listColAtividades = ['ID_ATIVIDADE', 'TITULO', 'TIPO', 'DT_INICIO']
         
         var_dfDadosAtividades = pd.DataFrame(columns=var_listColAtividades)
         var_dfDadosAtividades = pd.concat([var_dfDadosAtividades, pd.DataFrame(var_dicDadosAtividades)], ignore_index=True)
@@ -80,7 +80,7 @@ def listar_atividades():
         var_dicAbaSimulados = varobjPlanilha.worksheet("simulados")
         var_dicDadosSimulados = var_dicAbaSimulados.get_all_records()
         
-        var_listColSimulados = ['ID_SIMULADO', 'ID_ATIVIDADE', 'AREA', 'ACERTOS', 'TEMPO_TOTAL', 'COMENTARIOS', 'DT_INCLUSAO']
+        var_listColSimulados = ['ID_SIMULADO', 'ID_ATIVIDADE', 'AREA', 'ACERTOS', 'TEMPO_TOTAL', 'COMENTARIOS', 'DT_REALIZADO']
         
         var_dfDadosSimulados = pd.DataFrame(columns=var_listColSimulados)
         var_dfDadosSimulados = pd.concat([var_dfDadosSimulados, pd.DataFrame(var_dicDadosSimulados)], ignore_index=True)
@@ -92,7 +92,7 @@ def listar_atividades():
         var_AbaQuestoes = varobjPlanilha.worksheet("questoes")
         var_dicDadosQuestoes = var_AbaQuestoes.get_all_records()
         
-        var_listColQuestoes = ['ID_QUESTOES', 'ID_ATIVIDADE', 'AREA', 'MATERIA', 'ASSUNTO', 'QUESTOES', 'ACERTOS', 'TEMPO_TOTAL', 'COMENTARIOS', 'DT_INCLUSAO']
+        var_listColQuestoes = ['ID_QUESTOES', 'ID_ATIVIDADE', 'AREA', 'MATERIA', 'ASSUNTO', 'QUESTOES', 'ACERTOS', 'TEMPO_TOTAL', 'COMENTARIOS', 'DT_REALIZADO']
         
         var_dfDadosQuestoes = pd.DataFrame(columns=var_listColQuestoes)
         var_dfDadosQuestoes = pd.concat([var_dfDadosQuestoes, pd.DataFrame(var_dicDadosQuestoes)], ignore_index=True)
@@ -117,7 +117,7 @@ def listar_atividades():
                 'ACERTOS': row['ACERTOS'],
                 'TEMPO_TOTAL': row['TEMPO_TOTAL'],
                 'COMENTARIOS': row['COMENTARIOS'],
-                'DT_INCLUSAO': row['DT_INCLUSAO']
+                'DT_REALIZADO': row['DT_REALIZADO']
             })
             
         # Cria um dicionário com a chave sendo o id da atividade e o valor uma lista com as questoes atreladass    
@@ -131,7 +131,7 @@ def listar_atividades():
                 'ACERTOS': row['ACERTOS'],
                 'TEMPO_TOTAL': row['TEMPO_TOTAL'],
                 'COMENTARIOS': row['COMENTARIOS'],
-                'DT_INCLUSAO': row['DT_INCLUSAO']
+                'DT_REALIZADO': row['DT_REALIZADO']
             })
             
         # Montagem do JSON final
@@ -149,7 +149,7 @@ def listar_atividades():
                 'TIPO': var_strTipo,
                 'QUESTOES': 0,
                 'ACERTOS': 0,
-                'DT_ATUALIZACAO': atividade['DT_ATUALIZACAO'],
+                'DT_INICIO': atividade['DT_INICIO'],
                 'INFO': []
             }
 
@@ -163,8 +163,6 @@ def listar_atividades():
             for registro in item['INFO']:
                 item['QUESTOES'] += registro['QUESTOES']
                 item['ACERTOS']  += registro['ACERTOS']
-
-            print(item)
             
             var_jsonFinal.append(item)
 

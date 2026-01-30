@@ -14,11 +14,24 @@ const MinhasAtividades = () => {
   const [filtroBusca, setFiltroBusca] = useState('');
 
   // Estado de ordenação
-  const [ordenacao, setOrdenacao] = useState({ campo: 'DT_ATUALIZACAO', direcao: 'desc' });
+  const [ordenacao, setOrdenacao] = useState({ campo: 'DT_INICIO', direcao: 'desc' });
 
   // Estados do modal
   const [modalAberto, setModalAberto] = useState(false);
   const [atividadeSelecionada, setAtividadeSelecionada] = useState(null);
+
+  // Estados do modal de nova entrada
+  const [modalNovaEntradaAberto, setModalNovaEntradaAberto] = useState(false);
+  const [formularioNovaEntrada, setFormularioNovaEntrada] = useState({
+    area: '',
+    materia: '',
+    assunto: '',
+    questoes: '',
+    acertos: '',
+    tempo_total: '',
+    comentarios: ''
+  });
+  const [enviandoNovaEntrada, setEnviandoNovaEntrada] = useState(false);
 
   // Carregar atividades ao montar o componente
   useEffect(() => {
@@ -86,7 +99,7 @@ const MinhasAtividades = () => {
       }
 
       // Tratamento especial para datas
-      if (campo === 'DT_ATUALIZACAO') {
+      if (campo === 'DT_INICIO') {
         valorA = new Date(valorA.split('/').reverse().join('-')).getTime() || 0;
         valorB = new Date(valorB.split('/').reverse().join('-')).getTime() || 0;
       }
@@ -124,6 +137,107 @@ const MinhasAtividades = () => {
   const fecharModal = () => {
     setModalAberto(false);
     setAtividadeSelecionada(null);
+  };
+
+  const abrirModalNovaEntrada = () => {
+    setFormularioNovaEntrada({
+      area: '',
+      materia: '',
+      assunto: '',
+      questoes: '',
+      acertos: '',
+      tempo_total: '',
+      comentarios: ''
+    });
+    setModalNovaEntradaAberto(true);
+  };
+
+  const fecharModalNovaEntrada = () => {
+    setModalNovaEntradaAberto(false);
+    setFormularioNovaEntrada({
+      area: '',
+      materia: '',
+      assunto: '',
+      questoes: '',
+      acertos: '',
+      tempo_total: '',
+      comentarios: ''
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormularioNovaEntrada(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const submeterNovaEntrada = async (e) => {
+    e.preventDefault();
+    setEnviandoNovaEntrada(true);
+
+    try {
+      const isSimulado = atividadeSelecionada.TIPO === 'Simulado';
+      const endpoint = isSimulado ? '/api/criar_simulado' : '/api/criar_questoes';
+
+      const dados = {
+        id_atividade: atividadeSelecionada.ID_ATIVIDADE,
+        area: formularioNovaEntrada.area,
+        questoes: parseInt(formularioNovaEntrada.questoes),
+        acertos: parseInt(formularioNovaEntrada.acertos),
+        tempo_total: formularioNovaEntrada.tempo_total,
+        comentarios: formularioNovaEntrada.comentarios
+      };
+
+      // Adicionar campos específicos para questões
+      if (!isSimulado) {
+        dados.materia = formularioNovaEntrada.materia;
+        dados.assunto = formularioNovaEntrada.assunto;
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dados)
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert(`${isSimulado ? 'Simulado' : 'Bloco'} criado com sucesso!`);
+        fecharModalNovaEntrada();
+        // Recarregar atividades para atualizar os dados
+        await carregarAtividades();
+        // Reabrir o modal de detalhes com os dados atualizados
+        const atividadeAtualizada = await buscarAtividadeAtualizada(atividadeSelecionada.ID_ATIVIDADE);
+        if (atividadeAtualizada) {
+          setAtividadeSelecionada(atividadeAtualizada);
+        }
+      } else {
+        throw new Error(result.error || 'Erro ao criar entrada');
+      }
+    } catch (error) {
+      console.error('Erro ao submeter nova entrada:', error);
+      alert(`Erro ao criar entrada: ${error.message}`);
+    } finally {
+      setEnviandoNovaEntrada(false);
+    }
+  };
+
+  const buscarAtividadeAtualizada = async (idAtividade) => {
+    try {
+      const response = await fetch('/api/listar_atividades');
+      const data = await response.json();
+      if (response.ok && data.success) {
+        return data.data.find(a => a.ID_ATIVIDADE === idAtividade);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar atividade atualizada:', error);
+    }
+    return null;
   };
 
   // Obter tipos únicos para filtro
@@ -228,8 +342,8 @@ const MinhasAtividades = () => {
                       Acertos {getIconeOrdenacao('ACERTOS')}
                     </th>
                     <th>Aproveitamento</th>
-                    <th onClick={() => alternarOrdenacao('DT_ATUALIZACAO')}>
-                      Data de Atualização {getIconeOrdenacao('DT_ATUALIZACAO')}
+                    <th onClick={() => alternarOrdenacao('DT_INICIO')}>
+                      Data de Início {getIconeOrdenacao('DT_INICIO')}
                     </th>
                     <th>Ações</th>
                   </tr>
@@ -257,7 +371,7 @@ const MinhasAtividades = () => {
                             </span>
                           ) : '-'}
                         </td>
-                        <td className="celula-data">{atividade.DT_ATUALIZACAO}</td>
+                        <td className="celula-data">{atividade.DT_INICIO}</td>
                         <td>
                           <button
                             className="botao-detalhes"
@@ -285,9 +399,18 @@ const MinhasAtividades = () => {
               <h2>
                 Detalhes - {atividadeSelecionada.TITULO}
               </h2>
-              <button className="modal-fechar" onClick={fecharModal}>
-                ✕
-              </button>
+              <div className="modal-header-actions">
+                <button
+                  className="modal-adicionar"
+                  onClick={abrirModalNovaEntrada}
+                  title={`Adicionar ${atividadeSelecionada.TIPO === 'Simulado' ? 'Simulado' : 'Bloco'}`}
+                >
+                  +
+                </button>
+                <button className="modal-fechar" onClick={fecharModal}>
+                  ✕
+                </button>
+              </div>
             </div>
 
             <div className="modal-body">
@@ -304,7 +427,7 @@ const MinhasAtividades = () => {
                         <th>Aproveitamento</th>
                         <th>Tempo Total</th>
                         <th>Comentários</th>
-                        <th>Data Inclusão</th>
+                        <th>Data Realizado</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -323,7 +446,7 @@ const MinhasAtividades = () => {
                             </td>
                             <td>{simulado.TEMPO_TOTAL}</td>
                             <td className="celula-comentarios">{simulado.COMENTARIOS || '-'}</td>
-                            <td className="celula-data">{simulado.DT_INCLUSAO}</td>
+                            <td className="celula-data">{simulado.DT_REALIZADO}</td>
                           </tr>
                         );
                       })}
@@ -345,7 +468,7 @@ const MinhasAtividades = () => {
                         <th>Aproveitamento</th>
                         <th>Tempo Total</th>
                         <th>Comentários</th>
-                        <th>Data Inclusão</th>
+                        <th>Data Realizado</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -366,7 +489,7 @@ const MinhasAtividades = () => {
                             </td>
                             <td>{questao.TEMPO_TOTAL}</td>
                             <td className="celula-comentarios">{questao.COMENTARIOS || '-'}</td>
-                            <td className="celula-data">{questao.DT_INCLUSAO}</td>
+                            <td className="celula-data">{questao.DT_REALIZADO}</td>
                           </tr>
                         );
                       })}
@@ -374,6 +497,142 @@ const MinhasAtividades = () => {
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Nova Entrada (Simulado ou Bloco) */}
+      {modalNovaEntradaAberto && atividadeSelecionada && (
+        <div className="modal-overlay" onClick={fecharModalNovaEntrada}>
+          <div className="modal-conteudo modal-form" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>
+                {atividadeSelecionada.TIPO === 'Simulado' ? 'Novo Simulado' : 'Novo Bloco'}
+              </h2>
+              <button className="modal-fechar" onClick={fecharModalNovaEntrada}>
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <form onSubmit={submeterNovaEntrada} className="form-nova-entrada">
+                <div className="form-group">
+                  <label htmlFor="area">Área *</label>
+                  <input
+                    type="text"
+                    id="area"
+                    name="area"
+                    value={formularioNovaEntrada.area}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Ex: Linguagens"
+                  />
+                </div>
+
+                {atividadeSelecionada.TIPO !== 'Simulado' && (
+                  <>
+                    <div className="form-group">
+                      <label htmlFor="materia">Matéria *</label>
+                      <input
+                        type="text"
+                        id="materia"
+                        name="materia"
+                        value={formularioNovaEntrada.materia}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="Ex: Português"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="assunto">Assunto *</label>
+                      <input
+                        type="text"
+                        id="assunto"
+                        name="assunto"
+                        value={formularioNovaEntrada.assunto}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="Ex: Gramática"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="questoes">Questões *</label>
+                    <input
+                      type="number"
+                      id="questoes"
+                      name="questoes"
+                      value={formularioNovaEntrada.questoes}
+                      onChange={handleInputChange}
+                      required
+                      min="0"
+                      placeholder="Ex: 45"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="acertos">Acertos *</label>
+                    <input
+                      type="number"
+                      id="acertos"
+                      name="acertos"
+                      value={formularioNovaEntrada.acertos}
+                      onChange={handleInputChange}
+                      required
+                      min="0"
+                      placeholder="Ex: 42"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="tempo_total">Tempo Total *</label>
+                    <input
+                      type="text"
+                      id="tempo_total"
+                      name="tempo_total"
+                      value={formularioNovaEntrada.tempo_total}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Ex: 02:00"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="comentarios">Comentários</label>
+                  <textarea
+                    id="comentarios"
+                    name="comentarios"
+                    value={formularioNovaEntrada.comentarios}
+                    onChange={handleInputChange}
+                    rows="3"
+                    placeholder="Comentários opcionais sobre a atividade..."
+                  />
+                </div>
+
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    className="botao-cancelar"
+                    onClick={fecharModalNovaEntrada}
+                    disabled={enviandoNovaEntrada}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="botao-salvar"
+                    disabled={enviandoNovaEntrada}
+                  >
+                    {enviandoNovaEntrada ? 'Salvando...' : 'Salvar'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
