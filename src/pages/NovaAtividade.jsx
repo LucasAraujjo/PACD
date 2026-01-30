@@ -6,6 +6,7 @@ const NovaAtividade = () => {
   const [formData, setFormData] = useState({
     titulo: '',
     tipo: '',
+    dt_inicio: '',
     tempo_total: '',
     comentarios: '',
     area: '',
@@ -47,11 +48,33 @@ const NovaAtividade = () => {
     return `${limitado.slice(0, 2)}:${limitado.slice(2)}`;
   };
 
+  const formatarData = (value) => {
+    // Remove tudo que não é número
+    const numeros = value.replace(/\D/g, '');
+
+    // Limita a 8 dígitos
+    const limitado = numeros.slice(0, 8);
+
+    // Aplica a máscara 00/00/0000
+    if (limitado.length <= 2) {
+      return limitado;
+    } else if (limitado.length <= 4) {
+      return `${limitado.slice(0, 2)}/${limitado.slice(2)}`;
+    } else {
+      return `${limitado.slice(0, 2)}/${limitado.slice(2, 4)}/${limitado.slice(4)}`;
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     // Aplica máscara se for o campo tempo_total
-    const valorFinal = name === 'tempo_total' ? formatarTempo(value) : value;
+    let valorFinal = value;
+    if (name === 'tempo_total') {
+      valorFinal = formatarTempo(value);
+    } else if (name === 'dt_inicio') {
+      valorFinal = formatarData(value);
+    }
 
     console.log('📝 Campo alterado:', name, '=', valorFinal);
     setFormData(prev => ({
@@ -71,6 +94,25 @@ const NovaAtividade = () => {
     if (!formData.tipo) {
       console.error('❌ Validação falhou: tipo não selecionado');
       setMensagem({ tipo: 'erro', texto: 'Selecione o tipo da atividade' });
+      return false;
+    }
+    if (!formData.dt_inicio) {
+      console.error('❌ Validação falhou: data de início não preenchida');
+      setMensagem({ tipo: 'erro', texto: 'A data de início é obrigatória' });
+      return false;
+    }
+    // Validar formato da data (deve ser 00/00/0000)
+    const regexData = /^\d{2}\/\d{2}\/\d{4}$/;
+    if (!regexData.test(formData.dt_inicio)) {
+      console.error('❌ Validação falhou: formato de data inválido');
+      setMensagem({ tipo: 'erro', texto: 'A data deve estar no formato 00/00/0000 (dia/mês/ano)' });
+      return false;
+    }
+    // Validar se a data é válida
+    const [dia, mes, ano] = formData.dt_inicio.split('/').map(Number);
+    if (dia < 1 || dia > 31 || mes < 1 || mes > 12 || ano < 1900 || ano > 2100) {
+      console.error('❌ Validação falhou: data inválida');
+      setMensagem({ tipo: 'erro', texto: 'Data inválida. Verifique dia, mês e ano' });
       return false;
     }
     if (!formData.tempo_total) {
@@ -210,6 +252,7 @@ const NovaAtividade = () => {
         setFormData({
           titulo: '',
           tipo: '',
+          dt_inicio: '',
           tempo_total: '',
           comentarios: '',
           area: '',
@@ -302,6 +345,23 @@ const NovaAtividade = () => {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="campo">
+            <label htmlFor="dt_inicio">
+              Data de Início <span className="obrigatorio">*</span>
+            </label>
+            <input
+              type="text"
+              id="dt_inicio"
+              name="dt_inicio"
+              value={formData.dt_inicio}
+              onChange={handleChange}
+              placeholder="00/00/0000"
+              disabled={isLoading}
+              maxLength={10}
+              inputMode="numeric"
+            />
           </div>
 
           <div className="campo">
