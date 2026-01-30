@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import '../styles/MinhasAtividades.css';
 
@@ -11,11 +11,14 @@ const MinhasAtividades = () => {
 
   // Estados de filtro
   const [filtroTipo, setFiltroTipo] = useState('');
-  const [filtroArea, setFiltroArea] = useState('');
   const [filtroBusca, setFiltroBusca] = useState('');
 
   // Estado de ordenação
-  const [ordenacao, setOrdenacao] = useState({ campo: 'data_execucao', direcao: 'desc' });
+  const [ordenacao, setOrdenacao] = useState({ campo: 'DT_ATUALIZACAO', direcao: 'desc' });
+
+  // Estados do modal
+  const [modalAberto, setModalAberto] = useState(false);
+  const [atividadeSelecionada, setAtividadeSelecionada] = useState(null);
 
   // Carregar atividades ao montar o componente
   useEffect(() => {
@@ -25,7 +28,7 @@ const MinhasAtividades = () => {
   // Aplicar filtros e ordenação quando atividades ou filtros mudarem
   useEffect(() => {
     aplicarFiltrosEOrdenacao();
-  }, [atividades, filtroTipo, filtroArea, filtroBusca, ordenacao]);
+  }, [atividades, filtroTipo, filtroBusca, ordenacao]);
 
   const carregarAtividades = async () => {
     console.log('🔄 Carregando atividades...');
@@ -58,21 +61,15 @@ const MinhasAtividades = () => {
 
     // Filtro por tipo
     if (filtroTipo) {
-      resultado = resultado.filter(a => a.tipo === filtroTipo);
+      resultado = resultado.filter(a => a.TIPO === filtroTipo);
     }
 
-    // Filtro por área
-    if (filtroArea) {
-      resultado = resultado.filter(a => a.area === filtroArea);
-    }
-
-    // Filtro por busca (título, matéria, assunto)
+    // Filtro por busca (ID e título)
     if (filtroBusca) {
       const busca = filtroBusca.toLowerCase();
       resultado = resultado.filter(a =>
-        a.titulo?.toLowerCase().includes(busca) ||
-        a.materia?.toLowerCase().includes(busca) ||
-        a.assunto?.toLowerCase().includes(busca)
+        String(a.ID_ATIVIDADE).includes(busca) ||
+        a.TITULO?.toLowerCase().includes(busca)
       );
     }
 
@@ -83,13 +80,13 @@ const MinhasAtividades = () => {
       let valorB = b[campo] || '';
 
       // Tratamento especial para números
-      if (campo === 'questoes' || campo === 'acertos') {
+      if (campo === 'ID_ATIVIDADE') {
         valorA = parseInt(valorA) || 0;
         valorB = parseInt(valorB) || 0;
       }
 
       // Tratamento especial para datas
-      if (campo === 'data_execucao' || campo === 'data_inclusao') {
+      if (campo === 'DT_ATUALIZACAO') {
         valorA = new Date(valorA.split('/').reverse().join('-')).getTime() || 0;
         valorB = new Date(valorB.split('/').reverse().join('-')).getTime() || 0;
       }
@@ -109,11 +106,6 @@ const MinhasAtividades = () => {
     }));
   };
 
-  const calcularPercentual = (acertos, questoes) => {
-    if (!questoes || questoes === 0) return 0;
-    return ((acertos / questoes) * 100).toFixed(1);
-  };
-
   const getIconeOrdenacao = (campo) => {
     if (ordenacao.campo !== campo) return '↕';
     return ordenacao.direcao === 'asc' ? '↑' : '↓';
@@ -121,13 +113,21 @@ const MinhasAtividades = () => {
 
   const limparFiltros = () => {
     setFiltroTipo('');
-    setFiltroArea('');
     setFiltroBusca('');
   };
 
-  // Obter listas únicas para filtros
-  const tiposUnicos = [...new Set(atividades.map(a => a.tipo))].filter(Boolean);
-  const areasUnicas = [...new Set(atividades.map(a => a.area))].filter(Boolean);
+  const abrirDetalhes = (atividade) => {
+    setAtividadeSelecionada(atividade);
+    setModalAberto(true);
+  };
+
+  const fecharModal = () => {
+    setModalAberto(false);
+    setAtividadeSelecionada(null);
+  };
+
+  // Obter tipos únicos para filtro
+  const tiposUnicos = [...new Set(atividades.map(a => a.TIPO))].filter(Boolean);
 
   return (
     <>
@@ -160,7 +160,7 @@ const MinhasAtividades = () => {
             <div className="filtro-grupo">
               <input
                 type="text"
-                placeholder="🔍 Buscar por título, matéria ou assunto..."
+                placeholder="🔍 Buscar por ID ou título..."
                 value={filtroBusca}
                 onChange={(e) => setFiltroBusca(e.target.value)}
                 className="filtro-busca"
@@ -179,18 +179,7 @@ const MinhasAtividades = () => {
                 ))}
               </select>
 
-              <select
-                value={filtroArea}
-                onChange={(e) => setFiltroArea(e.target.value)}
-                className="filtro-select"
-              >
-                <option value="">Todas as áreas</option>
-                {areasUnicas.map(area => (
-                  <option key={area} value={area}>{area}</option>
-                ))}
-              </select>
-
-              {(filtroTipo || filtroArea || filtroBusca) && (
+              {(filtroTipo || filtroBusca) && (
                 <button onClick={limparFiltros} className="botao-limpar-filtros">
                   Limpar filtros
                 </button>
@@ -220,72 +209,150 @@ const MinhasAtividades = () => {
               <table className="tabela-atividades">
                 <thead>
                   <tr>
-                    <th onClick={() => alternarOrdenacao('tipo')}>
-                      Tipo {getIconeOrdenacao('tipo')}
+                    <th onClick={() => alternarOrdenacao('ID_ATIVIDADE')}>
+                      ID {getIconeOrdenacao('ID_ATIVIDADE')}
                     </th>
-                    <th onClick={() => alternarOrdenacao('titulo')}>
-                      Título {getIconeOrdenacao('titulo')}
+                    <th onClick={() => alternarOrdenacao('TITULO')}>
+                      Título {getIconeOrdenacao('TITULO')}
                     </th>
-                    <th onClick={() => alternarOrdenacao('area')}>
-                      Área {getIconeOrdenacao('area')}
+                    <th onClick={() => alternarOrdenacao('TIPO')}>
+                      Tipo {getIconeOrdenacao('TIPO')}
                     </th>
-                    <th onClick={() => alternarOrdenacao('materia')}>
-                      Matéria {getIconeOrdenacao('materia')}
+                    <th onClick={() => alternarOrdenacao('DT_ATUALIZACAO')}>
+                      Data de Atualização {getIconeOrdenacao('DT_ATUALIZACAO')}
                     </th>
-                    <th onClick={() => alternarOrdenacao('assunto')}>
-                      Assunto {getIconeOrdenacao('assunto')}
-                    </th>
-                    <th onClick={() => alternarOrdenacao('questoes')}>
-                      Questões {getIconeOrdenacao('questoes')}
-                    </th>
-                    <th onClick={() => alternarOrdenacao('acertos')}>
-                      Acertos {getIconeOrdenacao('acertos')}
-                    </th>
-                    <th>Aproveitamento</th>
-                    <th onClick={() => alternarOrdenacao('tempo_total')}>
-                      Tempo {getIconeOrdenacao('tempo_total')}
-                    </th>
-                    <th onClick={() => alternarOrdenacao('data_execucao')}>
-                      Data {getIconeOrdenacao('data_execucao')}
-                    </th>
+                    <th>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {atividadesFiltradas.map((atividade) => {
-                    const percentual = calcularPercentual(atividade.acertos, atividade.questoes);
-                    return (
-                      <tr key={atividade.id_atividade}>
-                        <td>
-                          <span className={`badge badge-${atividade.tipo?.toLowerCase()}`}>
-                            {atividade.tipo}
-                          </span>
-                        </td>
-                        <td className="celula-titulo">{atividade.titulo}</td>
-                        <td>{atividade.area || '-'}</td>
-                        <td>{atividade.materia || '-'}</td>
-                        <td>{atividade.assunto || '-'}</td>
-                        <td className="celula-numero">{atividade.questoes || '-'}</td>
-                        <td className="celula-numero">{atividade.acertos || '-'}</td>
-                        <td className="celula-percentual">
-                          {atividade.questoes ? (
-                            <span className={`percentual ${percentual >= 70 ? 'bom' : percentual >= 50 ? 'medio' : 'baixo'}`}>
-                              {percentual}%
-                            </span>
-                          ) : '-'}
-                        </td>
-                        <td>{atividade.tempo_total || '-'}</td>
-                        <td className="celula-data">
-                          {atividade.data_execucao || atividade.data_inclusao || '-'}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {atividadesFiltradas.map((atividade) => (
+                    <tr key={atividade.ID_ATIVIDADE}>
+                      <td className="celula-numero">{atividade.ID_ATIVIDADE}</td>
+                      <td className="celula-titulo">{atividade.TITULO}</td>
+                      <td>
+                        <span className={`badge badge-${atividade.TIPO?.toLowerCase()}`}>
+                          {atividade.TIPO}
+                        </span>
+                      </td>
+                      <td className="celula-data">{atividade.DT_ATUALIZACAO}</td>
+                      <td>
+                        <button
+                          className="botao-detalhes"
+                          onClick={() => abrirDetalhes(atividade)}
+                        >
+                          Ver Detalhes
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           )}
         </div>
       </div>
+
+      {/* Modal de Detalhes */}
+      {modalAberto && atividadeSelecionada && (
+        <div className="modal-overlay" onClick={fecharModal}>
+          <div className="modal-conteudo" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>
+                Detalhes - {atividadeSelecionada.TITULO}
+              </h2>
+              <button className="modal-fechar" onClick={fecharModal}>
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {atividadeSelecionada.TIPO === 'Simulado' ? (
+                /* Modal de Simulados */
+                <div className="tabela-container">
+                  <table className="tabela-detalhes">
+                    <thead>
+                      <tr>
+                        <th>ID Simulado</th>
+                        <th>Área</th>
+                        <th>Questões</th>
+                        <th>Acertos</th>
+                        <th>Aproveitamento</th>
+                        <th>Tempo Total</th>
+                        <th>Comentários</th>
+                        <th>Data Inclusão</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {atividadeSelecionada.INFO?.map((simulado, index) => {
+                        const percentual = ((simulado.ACERTOS / simulado.QUESTOES) * 100).toFixed(1);
+                        return (
+                          <tr key={index}>
+                            <td>{simulado.ID_SIMULADO}</td>
+                            <td>{simulado.AREA}</td>
+                            <td className="celula-numero">{simulado.QUESTOES}</td>
+                            <td className="celula-numero">{simulado.ACERTOS}</td>
+                            <td className="celula-percentual">
+                              <span className={`percentual ${percentual >= 70 ? 'bom' : percentual >= 50 ? 'medio' : 'baixo'}`}>
+                                {percentual}%
+                              </span>
+                            </td>
+                            <td>{simulado.TEMPO_TOTAL}</td>
+                            <td className="celula-comentarios">{simulado.COMENTARIOS || '-'}</td>
+                            <td className="celula-data">{simulado.DT_INCLUSAO}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                /* Modal de Questões */
+                <div className="tabela-container">
+                  <table className="tabela-detalhes">
+                    <thead>
+                      <tr>
+                        <th>ID Bloco</th>
+                        <th>Área</th>
+                        <th>Matéria</th>
+                        <th>Assunto</th>
+                        <th>Questões</th>
+                        <th>Acertos</th>
+                        <th>Aproveitamento</th>
+                        <th>Tempo Total</th>
+                        <th>Comentários</th>
+                        <th>Data Inclusão</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {atividadeSelecionada.INFO?.map((questao, index) => {
+                        const percentual = ((questao.ACERTOS / questao.QUESTOES) * 100).toFixed(1);
+                        return (
+                          <tr key={index}>
+                            <td>{questao.ID_QUESTAO}</td>
+                            <td>{questao.AREA}</td>
+                            <td>{questao.MATERIA}</td>
+                            <td>{questao.ASSUNTO}</td>
+                            <td className="celula-numero">{questao.QUESTOES}</td>
+                            <td className="celula-numero">{questao.ACERTOS}</td>
+                            <td className="celula-percentual">
+                              <span className={`percentual ${percentual >= 70 ? 'bom' : percentual >= 50 ? 'medio' : 'baixo'}`}>
+                                {percentual}%
+                              </span>
+                            </td>
+                            <td>{questao.TEMPO_TOTAL}</td>
+                            <td className="celula-comentarios">{questao.COMENTARIOS || '-'}</td>
+                            <td className="celula-data">{questao.DT_INCLUSAO}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

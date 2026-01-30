@@ -88,7 +88,9 @@ def inserir_simulado(planilha, id_atividade, dados):
         dados.get('area', ''),
         dados.get('questoes', ''),
         dados.get('acertos', ''),
-        dados.get('comentarios', '')
+        dados.get('tempo_total', ''),
+        dados.get('comentarios', ''),
+        data_execucao
     ]
 
     print(f"📝 Inserindo simulado: {linha_simulado}")
@@ -120,14 +122,14 @@ def inserir_questoes(planilha, id_atividade, dados):
     linha_questao = [
         id_questao,
         id_atividade,
-        data_execucao,
         dados.get('area', ''),
         dados.get('materia', ''),
         dados.get('assunto', ''),
         dados.get('questoes', ''),
         dados.get('acertos', ''),
         dados.get('tempo_total', ''),
-        dados.get('comentarios', '')
+        dados.get('comentarios', ''),
+        data_execucao
     ]
 
     print(f"📝 Inserindo questão: {linha_questao}")
@@ -181,7 +183,6 @@ def inserir_atividade(dados):
             id_atividade,
             dados.get('titulo', ''),
             dados.get('tipo', ''),
-            dados.get('tempo_total', ''),
             data_inclusao
         ]
         print(f"📝 Linha a ser inserida em 'atividades': {linha}")

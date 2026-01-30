@@ -9,6 +9,10 @@ from http.server import BaseHTTPRequestHandler
 import gspread
 from google.oauth2.service_account import Credentials
 
+import pandas as pd
+from functools import reduce
+from collections import defaultdict
+
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -49,82 +53,113 @@ def listar_atividades():
     try:
         # Conectar ao Google Sheets
         print("🔑 Obtendo credenciais do Google...")
-        creds = get_google_credentials()
+        var_dicCreds = get_google_credentials()
         print("✅ Credenciais obtidas")
 
         print("🔗 Autorizando cliente gspread...")
-        client = gspread.authorize(creds)
+        var_objClient = gspread.authorize(var_dicCreds)
         print("✅ Cliente autorizado")
 
         print(f"📁 Abrindo planilha '{SPREADSHEET_NAME}'...")
-        planilha = client.open(SPREADSHEET_NAME)
+        varobjPlanilha = var_objClient.open(SPREADSHEET_NAME)
         print("✅ Planilha aberta")
 
         # Ler aba 'atividades'
         print("📄 Lendo aba 'atividades'...")
-        aba_atividades = planilha.worksheet("atividades")
-        dados_atividades = aba_atividades.get_all_records()
-        print(f"✅ {len(dados_atividades)} atividades encontradas")
+        var_objAbaAtividades = varobjPlanilha.worksheet("atividades")
+        var_dicDadosAtividades = var_objAbaAtividades.get_all_records()
+        
+        var_listColAtividades = ['ID_ATIVIDADE', 'TITULO', 'TIPO', 'DT_ATUALIZACAO']
+        
+        var_dfDadosAtividades = pd.DataFrame(columns=var_listColAtividades)
+        var_dfDadosAtividades = pd.concat([var_dfDadosAtividades, pd.DataFrame(var_dicDadosAtividades)], ignore_index=True)
+        print(f"✅ {len(var_dicDadosAtividades)} atividades encontradas")
 
         # Ler aba 'simulados'
         print("📄 Lendo aba 'simulados'...")
-        aba_simulados = planilha.worksheet("simulados")
-        dados_simulados = aba_simulados.get_all_records()
-        print(f"✅ {len(dados_simulados)} simulados encontrados")
+        var_dicAbaSimulados = varobjPlanilha.worksheet("simulados")
+        var_dicDadosSimulados = var_dicAbaSimulados.get_all_records()
+        
+        var_listColSimulados = ['ID_SIMULADO', 'ID_ATIVIDADE', 'AREA', 'ACERTOS', 'TEMPO_TOTAL', 'COMENTARIOS', 'DT_INCLUSAO']
+        
+        var_dfDadosSimulados = pd.DataFrame(columns=var_listColSimulados)
+        var_dfDadosSimulados = pd.concat([var_dfDadosSimulados, pd.DataFrame(var_dicDadosSimulados)], ignore_index=True)
+
+        print(f"✅ {len(var_dicDadosSimulados)} simulados encontrados")
 
         # Ler aba 'questoes'
         print("📄 Lendo aba 'questoes'...")
-        aba_questoes = planilha.worksheet("questoes")
-        dados_questoes = aba_questoes.get_all_records()
-        print(f"✅ {len(dados_questoes)} questões encontradas")
+        var_AbaQuestoes = varobjPlanilha.worksheet("questoes")
+        var_dicDadosQuestoes = var_AbaQuestoes.get_all_records()
+        
+        var_listColQuestoes = ['ID_QUESTOES', 'ID_ATIVIDADE', 'AREA', 'MATERIA', 'ASSUNTO', 'QUESTOES', 'ACERTOS', 'TEMPO_TOTAL', 'COMENTARIOS', 'DT_INCLUSAO']
+        
+        var_dfDadosQuestoes = pd.DataFrame(columns=var_listColQuestoes)
+        var_dfDadosQuestoes = pd.concat([var_dfDadosQuestoes, pd.DataFrame(var_dicDadosQuestoes)], ignore_index=True)
 
-        # Criar índices para busca rápida
-        simulados_por_atividade = {s['id_atividade']: s for s in dados_simulados}
-        questoes_por_atividade = {q['id_atividade']: q for q in dados_questoes}
+        print(f"✅ {len(var_dicDadosQuestoes)} questões encontradas")
+        
+        #####################################################
+        # Criação do formato JSON para retornar ao frontend #
+        #####################################################
+        
+        # Cria dicionários onde cada chave começa com uma lista vazia
+        var_listSimuladosPorAtividade = defaultdict(list)
+        var_listQuestoesPorAtividade = defaultdict(list)
+        
+        # Cria um dicionário com a chave sendo o id da atividade e o valor uma lista com os simulados atrelados
+        for _, row in var_dfDadosSimulados.iterrows():
+            var_intIdAtividade = row['ID_ATIVIDADE']
+            var_listSimuladosPorAtividade[var_intIdAtividade].append({
+                'ID_SIMULADO': row['ID_SIMULADO'],
+                'AREA': row['AREA'],
+                'QUESTOES': row['QUESTOES'],
+                'ACERTOS': row['ACERTOS'],
+                'TEMPO_TOTAL': row['TEMPO_TOTAL'],
+                'COMENTARIOS': row['COMENTARIOS'],
+                'DT_INCLUSAO': row['DT_INCLUSAO']
+            })
+            
+        # Cria um dicionário com a chave sendo o id da atividade e o valor uma lista com as questoes atreladass    
+        for _, row in var_dfDadosQuestoes.iterrows():
+            var_listQuestoesPorAtividade[row['ID_ATIVIDADE']].append({
+                'ID_QUESTOES': row['ID_QUESTOES'],
+                'AREA': row['AREA'],
+                'MATERIA': row['MATERIA'],
+                'ASSUNTO': row['ASSUNTO'],
+                'QUESTOES': row['QUESTOES'],
+                'ACERTOS': row['ACERTOS'],
+                'TEMPO_TOTAL': row['TEMPO_TOTAL'],
+                'COMENTARIOS': row['COMENTARIOS'],
+                'DT_INCLUSAO': row['DT_INCLUSAO']
+            })
+            
+        # Montagem do JSON final
 
-        # Mesclar dados
-        atividades_completas = []
-        for atividade in dados_atividades:
-            id_atividade = atividade['id_atividade']
-            tipo = atividade['tipo']
+        var_jsonFinal = []
 
-            # Criar objeto base
-            atividade_completa = {
-                'id_atividade': id_atividade,
-                'titulo': atividade['titulo'],
-                'tipo': tipo,
-                'tempo_total': atividade['tempo_total'],
-                'data_inclusao': atividade['data_inclusao']
+        for _, atividade in var_dfDadosAtividades.iterrows():
+            var_intIdAtividade = atividade['ID_ATIVIDADE']
+            var_strTipo = atividade['TIPO']
+
+            item = {
+                'ID_ATIVIDADE': var_intIdAtividade,
+                'TITULO': atividade['TITULO'],
+                'TIPO': var_strTipo,
+                'DT_ATUALIZACAO': atividade['DT_ATUALIZACAO'],
+                'INFO': []
             }
 
-            # Adicionar dados específicos baseado no tipo
-            if tipo == 'Simulado' and id_atividade in simulados_por_atividade:
-                simulado = simulados_por_atividade[id_atividade]
-                atividade_completa.update({
-                    'id_secundario': simulado.get('id_simulado', ''),
-                    'data_execucao': simulado.get('data_execucao', ''),
-                    'area': simulado.get('area', ''),
-                    'questoes': simulado.get('questoes', ''),
-                    'acertos': simulado.get('acertos', ''),
-                    'comentarios': simulado.get('comentarios', '')
-                })
-            elif tipo == 'Questões' and id_atividade in questoes_por_atividade:
-                questao = questoes_por_atividade[id_atividade]
-                atividade_completa.update({
-                    'id_secundario': questao.get('id_questao', ''),
-                    'data_execucao': questao.get('data_execucao', ''),
-                    'area': questao.get('area', ''),
-                    'materia': questao.get('materia', ''),
-                    'assunto': questao.get('assunto', ''),
-                    'questoes': questao.get('questoes', ''),
-                    'acertos': questao.get('acertos', ''),
-                    'comentarios': questao.get('comentarios', '')
-                })
+            if var_strTipo == 'Simulado':
+                item['INFO'] = var_listSimuladosPorAtividade.get(var_intIdAtividade, [])
 
-            atividades_completas.append(atividade_completa)
+            elif var_strTipo == 'QUESTOES':
+                item['INFO'] = var_listQuestoesPorAtividade.get(var_intIdAtividade, [])
 
-        print(f"✅ {len(atividades_completas)} atividades completas montadas")
-        return atividades_completas
+            var_jsonFinal.append(item)
+
+        print(f"✅ {len(var_jsonFinal)} atividades completas montadas")
+        return var_jsonFinal
 
     except Exception as e:
         print(f"❌ ERRO em listar_atividades: {str(e)}")
@@ -191,3 +226,6 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
+        
+if __name__ == '__main__':
+    listar_atividades()
