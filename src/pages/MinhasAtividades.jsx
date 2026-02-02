@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import '../styles/MinhasAtividades.css';
 
 const MinhasAtividades = () => {
@@ -35,6 +38,14 @@ const MinhasAtividades = () => {
     comentarios: ''
   });
   const [enviandoNovaEntrada, setEnviandoNovaEntrada] = useState(false);
+
+  // Estados do diálogo de confirmação
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [confirmDialogData, setConfirmDialogData] = useState({
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
 
   // Carregar atividades ao montar o componente
   useEffect(() => {
@@ -347,9 +358,98 @@ const MinhasAtividades = () => {
     return null;
   };
 
+  const excluirRegistro = (id, tipo, tipoAtividade = null) => {
+    // Abrir diálogo de confirmação
+    setConfirmDialogData({
+      title: 'Confirmar Exclusão',
+      message: 'Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.',
+      onConfirm: () => executarExclusao(id, tipo, tipoAtividade)
+    });
+    setConfirmDialogOpen(true);
+  };
+
+  const executarExclusao = async (id, tipo, tipoAtividade = null) => {
+    // Fechar diálogo
+    setConfirmDialogOpen(false);
+
+    try {
+      // Montar payload baseado no tipo de exclusão
+      let payload = { id, tipo };
+
+      // Se for exclusão de Atividade, adicionar tipo_atividade
+      if (tipo === 'Atividade' && tipoAtividade) {
+        payload.tipo_atividade = tipoAtividade;
+      }
+
+      const response = await fetch('/api/excluir_registro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success('Registro excluído com sucesso!', {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+
+        // Recarregar os dados conforme o tipo
+        if (tipo === 'Atividade') {
+          await carregarAtividades();
+          // Se o modal estiver aberto, fechar
+          if (modalAberto) {
+            fecharModal();
+          }
+        } else if (tipo === 'Redação') {
+          await carregarRedacoes();
+        } else {
+          // Para Simulado e Questões, recarregar atividades e atualizar o modal
+          await carregarAtividades();
+          if (modalAberto && atividadeSelecionada) {
+            const atividadeAtualizada = await buscarAtividadeAtualizada(atividadeSelecionada.ID_ATIVIDADE);
+            if (atividadeAtualizada) {
+              setAtividadeSelecionada(atividadeAtualizada);
+            } else {
+              // Se não houver mais registros, fechar o modal
+              fecharModal();
+            }
+          }
+        }
+      } else {
+        throw new Error(result.error || 'Erro ao excluir registro');
+      }
+    } catch (error) {
+      console.error('Erro ao excluir registro:', error);
+      toast.error(`Erro ao excluir registro: ${error.message}`, {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+  };
+
   return (
     <>
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <ToastContainer />
+      <ConfirmDialog
+        isOpen={confirmDialogOpen}
+        title={confirmDialogData.title}
+        message={confirmDialogData.message}
+        onConfirm={confirmDialogData.onConfirm}
+        onCancel={() => setConfirmDialogOpen(false)}
+      />
 
       <div className="minhas-atividades-container">
         {/* Header Fixo */}
@@ -490,7 +590,7 @@ const MinhasAtividades = () => {
                     <th onClick={() => alternarOrdenacao('DT_INICIO')}>
                       Data de Início {getIconeOrdenacao('DT_INICIO')}
                     </th>
-                    {filtroCategoria === 'Exercícios' && <th>Ações</th>}
+                    <th>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -543,16 +643,37 @@ const MinhasAtividades = () => {
                         )}
 
                         <td className="celula-data">{atividade.DT_INICIO}</td>
-                        {filtroCategoria === 'Exercícios' && (
-                          <td>
+                        <td>
+                          {filtroCategoria === 'Exercícios' ? (
+                            <div className="acoes-celula">
+                              <button
+                                className="botao-detalhes"
+                                onClick={() => abrirDetalhes(atividade)}
+                              >
+                                Detalhes
+                              </button>
+                              <button
+                                className="botao-excluir"
+                                onClick={() => {
+                                  // Mapear tipo de atividade para nome da aba
+                                  const tipoAba = atividade.TIPO === 'Simulado' ? 'simulados' : 'questoes';
+                                  excluirRegistro(atividade.ID_ATIVIDADE, 'Atividade', tipoAba);
+                                }}
+                                title="Excluir atividade"
+                              >
+                                🗑
+                              </button>
+                            </div>
+                          ) : (
                             <button
-                              className="botao-detalhes"
-                              onClick={() => abrirDetalhes(atividade)}
+                              className="botao-excluir"
+                              onClick={() => excluirRegistro(atividade.ID_ATIVIDADE, 'Atividade', 'redacoes')}
+                              title="Excluir redação"
                             >
-                              Ver Detalhes
+                              🗑
                             </button>
-                          </td>
-                        )}
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
@@ -601,6 +722,7 @@ const MinhasAtividades = () => {
                         <th>Tempo Total</th>
                         <th>Comentários</th>
                         <th>Data Realizado</th>
+                        <th></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -620,6 +742,15 @@ const MinhasAtividades = () => {
                             <td>{simulado.TEMPO_TOTAL}</td>
                             <td className="celula-comentarios">{simulado.COMENTARIOS || '-'}</td>
                             <td className="celula-data">{simulado.DT_REALIZADO}</td>
+                            <td>
+                              <button
+                                className="botao-excluir"
+                                onClick={() => excluirRegistro(simulado.ID_SIMULADO, 'Simulado')}
+                                title="Excluir simulado"
+                              >
+                                🗑
+                              </button>
+                            </td>
                           </tr>
                         );
                       })}
@@ -642,6 +773,7 @@ const MinhasAtividades = () => {
                         <th>Tempo Total</th>
                         <th>Comentários</th>
                         <th>Data Realizado</th>
+                        <th></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -663,6 +795,15 @@ const MinhasAtividades = () => {
                             <td>{questao.TEMPO_TOTAL}</td>
                             <td className="celula-comentarios">{questao.COMENTARIOS || '-'}</td>
                             <td className="celula-data">{questao.DT_REALIZADO}</td>
+                            <td>
+                              <button
+                                className="botao-excluir"
+                                onClick={() => excluirRegistro(questao.ID_QUESTOES, 'Questões')}
+                                title="Excluir questão"
+                              >
+                                🗑
+                              </button>
+                            </td>
                           </tr>
                         );
                       })}
