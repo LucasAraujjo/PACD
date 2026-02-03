@@ -1,16 +1,16 @@
-/* Confirm Dialog */
+/* Confirm Dialog - Tema Rosa Pastel Minimalista */
 .confirm-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(26, 26, 26, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 2000;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(3px);
   animation: fadeIn 0.2s ease;
 }
 
@@ -24,12 +24,12 @@
 }
 
 .confirm-dialog {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: 16px;
   min-width: 400px;
   max-width: 500px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-lg);
   animation: slideUp 0.3s ease;
 }
 
@@ -46,13 +46,13 @@
 
 .confirm-header {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(239, 68, 68, 0.1);
+  border-bottom: 1px solid var(--border);
+  background: rgba(242, 161, 179, 0.05);
 }
 
 .confirm-header h3 {
   margin: 0;
-  color: #ef4444;
+  color: var(--primary);
   font-size: 1.25rem;
   font-weight: 600;
 }
@@ -63,7 +63,7 @@
 
 .confirm-body p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
   font-size: 1rem;
   line-height: 1.5;
 }
@@ -73,7 +73,7 @@
   gap: 1rem;
   justify-content: flex-end;
   padding: 1.5rem 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-light);
 }
 
 .confirm-btn-cancel,
@@ -89,24 +89,28 @@
 }
 
 .confirm-btn-cancel {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
 }
 
 .confirm-btn-cancel:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--card-bg);
+  border-color: var(--gray);
 }
 
+/* Botão Danger - Preto com texto Rosa */
 .confirm-btn-confirm {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: #ffffff;
+  background: var(--black);
+  color: var(--primary);
+  border: 1px solid var(--primary);
 }
 
 .confirm-btn-confirm:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+  box-shadow: var(--shadow);
+  background: var(--primary);
+  color: var(--black);
 }
 
 /* Responsividade */

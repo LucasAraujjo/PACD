@@ -13,6 +13,14 @@ const MinhasAtividades = () => {
   const [erro, setErro] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Áreas do conhecimento
+  const areasConhecimento = [
+    'Humanas',
+    'Natureza',
+    'Matemática',
+    'Linguagens'
+  ];
+
   // Estados de filtro
   const [filtroCategoria, setFiltroCategoria] = useState('Exercícios'); // 'Exercícios' ou 'Redações'
   const [filtroTipo, setFiltroTipo] = useState('');
@@ -833,15 +841,20 @@ const MinhasAtividades = () => {
               <form onSubmit={submeterNovaEntrada} className="form-nova-entrada">
                 <div className="form-group">
                   <label htmlFor="area">Área *</label>
-                  <input
-                    type="text"
+                  <select
                     id="area"
                     name="area"
                     value={formularioNovaEntrada.area}
                     onChange={handleInputChange}
                     required
-                    placeholder="Ex: Linguagens"
-                  />
+                  >
+                    <option value="">Selecione a área</option>
+                    {areasConhecimento.map(area => (
+                      <option key={area} value={area}>
+                        {area}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {atividadeSelecionada.TIPO !== 'Simulado' && (
