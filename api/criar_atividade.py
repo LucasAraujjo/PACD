@@ -89,8 +89,8 @@ def inserir_simulado(planilha, id_atividade, dados):
 
     # Campos: id_simulado, id_atividade, data_execucao, area, questoes, acertos, tempo, comentarios
     linha_simulado = [
-        id_simulado,
         id_atividade,
+        id_simulado,
         dados.get('area', ''),
         dados.get('questoes', ''),
         dados.get('acertos', ''),
@@ -127,8 +127,8 @@ def inserir_questoes(planilha, id_atividade, dados):
 
     # Campos: id_questao, id_atividade, data_execucao, area, materia, assunto, questoes, acertos, tempo, comentarios
     linha_questao = [
-        id_questao,
         id_atividade,
+        id_questao,
         dados.get('area', ''),
         dados.get('materia', ''),
         dados.get('assunto', ''),
@@ -166,8 +166,8 @@ def inserir_redacao(planilha, id_atividade, dados):
 
     # Campos: id_questao, id_atividade, data_execucao, area, materia, assunto, questoes, acertos, tempo, comentarios
     linha_redacao = [
-        id_redacao,
         id_atividade,
+        id_redacao,
         'Redação',
         dados.get('c1', ''),
         dados.get('c2', ''),
